@@ -1,0 +1,107 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Test Data — User Credentials
+#
+# HOW TO USE THIS FILE:
+#   In your Robot Framework test or keyword, read it with:
+#
+#     Library    yaml    WITH NAME    YAML
+#
+#     ${raw}=    Get File    ${TEST_DATA_FILE}
+#     ${data}=   YAML.Safe Load    ${raw}
+#     ${user}=   Get From Dictionary    ${data}    valid_user
+#
+# SECURITY NOTE:
+#   This file contains TEST credentials only.
+#   NEVER put production passwords here.
+#   Add credentials.yaml to .gitignore if you fork this for real projects.
+#
+# TEST ENVIRONMENT:
+#   These credentials should exist in your staging / QA environment.
+#   Update them to match your test app's accounts.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Valid User (happy path) ───────────────────────────────────────────────────
+valid_user:
+  username: testuser@example.com
+  password: ValidPass123!
+  display_name: Test User        # The name shown in the welcome message on Home screen
+  role: standard                 # user role (for future RBAC tests)
+
+# ── Admin User ────────────────────────────────────────────────────────────────
+admin_user:
+  username: admin@example.com
+  password: AdminPass456!
+  display_name: Administrator
+  role: admin
+
+# ── Invalid Users (negative test scenarios) ───────────────────────────────────
+invalid_users:
+  - scenario: wrong_password
+    username: testuser@example.com
+    password: wrongpassword99
+    expected_error: "Invalid credentials. Please try again."
+
+  - scenario: non_existent_account
+    username: doesnotexist@example.com
+    password: SomePass123!
+    expected_error: "Invalid credentials. Please try again."
+
+  - scenario: empty_username
+    username: ""
+    password: ValidPass123!
+    expected_error: "Username is required."
+
+  - scenario: empty_password
+    username: testuser@example.com
+    password: ""
+    expected_error: "Password is required."
+
+  - scenario: empty_both_fields
+    username: ""
+    password: ""
+    expected_error: "Please enter your username and password."
+
+  - scenario: sql_injection_attempt
+    username: "admin' OR '1'='1"
+    password: "' OR '1'='1"
+    expected_error: "Invalid credentials. Please try again."
+
+  - scenario: whitespace_only_username
+    username: "   "
+    password: ValidPass123!
+    expected_error: "Username is required."
+
+# ── Special Character Edge Cases ──────────────────────────────────────────────
+edge_case_users:
+  - scenario: plus_in_email
+    username: test+tag@example.com
+    password: ValidPass123!
+    note: "Plus-sign is valid per RFC 5321 and should be accepted by the field"
+
+  - scenario: subdomain_email
+    username: user@mail.sub.example.co.uk
+    password: ValidPass123!
+    note: "Multi-level subdomain email address"
+
+  - scenario: very_long_email
+    username: "averylongusernamethatexceedsthenormallimitofcharactersandshouldbehandledgracefully@example.com"
+    password: ValidPass123!
+    note: "255-character limit test"
+
+# ── Locked / Disabled Account ─────────────────────────────────────────────────
+# Uncomment when your test environment has these accounts set up:
+# locked_user:
+#   username: locked@example.com
+#   password: LockedPass789!
+#   expected_error: "Your account has been locked. Please contact support."
+
+# ── Expected UI Strings ───────────────────────────────────────────────────────
+# Centralise UI text here so tests don't hard-code strings.
+ui_strings:
+  welcome_prefix: "Hello, "                          # "Hello, Test User!"
+  error_invalid_credentials: "Invalid credentials. Please try again."
+  error_username_required: "Username is required."
+  error_password_required: "Password is required."
+  error_both_required: "Please enter your username and password."
+  home_screen_title: "Home"
+  logout_confirmation: "You have been logged out."

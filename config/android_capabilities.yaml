@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Appium Desired Capabilities — Android
+#
+# HOW TO USE:
+#   1. Replace every value marked with "CHANGE ME" with your actual app info.
+#   2. Find appPackage + appActivity by running:
+#        adb shell dumpsys window | grep -E 'mCurrentFocus|mFocusedApp'
+#      while your app is open on the device.
+#   3. Run 'adb devices' to confirm deviceName.
+#
+# Reference:
+#   https://appium.io/docs/en/2.0/guides/caps/
+#   https://github.com/appium/appium-uiautomator2-driver#capabilities
+# ─────────────────────────────────────────────────────────────────────────────
+
+capabilities:
+
+  # ── Platform ──────────────────────────────────────────────────────────────
+  platformName: Android
+  # The minimum Android API level required by your app.
+  # Common values: 11 (Android 11), 12 (Android 12), 13 (Android 13)
+  platformVersion: "13"
+
+  # ── Device ────────────────────────────────────────────────────────────────
+  # Run 'adb devices -l' and copy the model or serial here.
+  # For an emulator this is typically the AVD name shown in Android Studio.
+  deviceName: "Pixel_6_API_33"
+
+  # ── App Identification ────────────────────────────────────────────────────
+  # The package name of the app you want to test.
+  # Find it with: adb shell pm list packages | grep <your-app-keyword>
+  appPackage: "com.example.myapp"           # CHANGE ME
+
+  # The Activity that should be launched (usually the main/splash activity).
+  # Find it with: adb shell dumpsys package com.example.myapp | grep -i activity
+  appActivity: "com.example.myapp.MainActivity"   # CHANGE ME
+
+  # ── Automation Engine ─────────────────────────────────────────────────────
+  # UiAutomator2 is the recommended driver for Android (Appium 2.x).
+  # Install it once with: appium driver install uiautomator2
+  automationName: UiAutomator2
+
+  # ── Session Behavior ──────────────────────────────────────────────────────
+  # If true, the app keeps its data between test runs (no fresh login every run).
+  # Set to false if tests require a clean app state each run.
+  noReset: false
+
+  # If true, prevents Appium from uninstalling/reinstalling the app before the session.
+  # Faster startup, but the app must already be installed.
+  fullReset: false
+
+  # Seconds Appium waits for a new command before closing the session.
+  # Increase this if you have long pauses (e.g., CI pipelines).
+  newCommandTimeout: 300
+
+  # ── App Binary (optional) ─────────────────────────────────────────────────
+  # Absolute path to the .apk file. Appium will install it before the session.
+  # Comment this out if the app is already installed on the device.
+  # app: "/Users/monmac/work/robotframework_automation/app/android/myapp.apk"
+
+  # ── Language / Locale ─────────────────────────────────────────────────────
+  # Force a specific language/locale so tests are language-independent.
+  # language: "en"
+  # locale: "US"
+
+  # ── Performance / Logging ─────────────────────────────────────────────────
+  # Print Appium server logs to stdout (useful for debugging).
+  # printPageSourceOnFindFailure: true
+
+  # Skip device animations — speeds up tests significantly.
+  disableWindowAnimation: true
+
+  # ── Timeouts ──────────────────────────────────────────────────────────────
+  # How long UiAutomator2 waits for elements to appear (milliseconds).
+  uiautomator2ServerLaunchTimeout: 60000
+  uiautomator2ServerInstallTimeout: 60000
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Appium Server URL
+# Default: http://localhost:4723
+# Override with the APPIUM_URL environment variable or common_variables.robot.
+# ─────────────────────────────────────────────────────────────────────────────
+appium_server:
+  url: "http://localhost:4723"

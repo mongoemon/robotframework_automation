@@ -1,0 +1,64 @@
+# ─── Claude Code (IDE tool config — not project code) ─────────────────────────
+.claude/
+
+# ─── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+
+# ─── Robot Framework Output ───────────────────────────────────────────────────
+# Keep the results/ folder but ignore generated output files
+results/*.html
+results/*.xml
+results/*.log
+results/screenshots/
+results/video/
+
+# ─── Appium / Mobile ──────────────────────────────────────────────────────────
+# App binaries (commit only to LFS if needed, never directly)
+*.apk
+*.ipa
+*.aab
+
+# ─── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ─── IDEs ─────────────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ─── Secrets / credentials (never commit these!) ─────────────────────────────
+.env
+.env.local
+secrets.yaml
+credentials.yaml
+
+# ─── Node (Appium global install) ─────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+appium.log
+
+# Keep .gitkeep placeholder files
+!results/.gitkeep
+!app/android/.gitkeep
+!app/ios/.gitkeep

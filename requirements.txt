@@ -1,0 +1,17 @@
+# Robot Framework Core
+robotframework>=7.0
+
+# Appium Library for mobile testing (Android + iOS)
+robotframework-appiumlibrary>=2.0.0
+
+# Appium Python client (underlying driver)
+Appium-Python-Client>=3.0.0
+
+# YAML parsing for config and test data files
+PyYAML>=6.0
+
+# Data-driven testing support (CSV/Excel/YAML based test cases)
+robotframework-datadriver>=1.11.0
+
+# For generating timestamps in reports
+python-dateutil>=2.8.2

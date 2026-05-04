@@ -1,0 +1,96 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Appium Desired Capabilities — iOS
+#
+# HOW TO USE:
+#   1. Replace every value marked with "CHANGE ME" with your actual app info.
+#   2. Find the bundleId by running (simulator):
+#        xcrun simctl listapps booted | grep <your-app-keyword>
+#      Or open the .app bundle and read Info.plist → CFBundleIdentifier.
+#   3. Find the UDID of a real device:
+#        xcrun xctrace list devices
+#      For simulators: xcrun simctl list devices | grep Booted
+#
+# Reference:
+#   https://appium.io/docs/en/2.0/guides/caps/
+#   https://github.com/appium/appium-xcuitest-driver#capabilities
+# ─────────────────────────────────────────────────────────────────────────────
+
+capabilities:
+
+  # ── Platform ──────────────────────────────────────────────────────────────
+  platformName: iOS
+  # iOS version running on the target simulator or device.
+  # Match exactly what appears in: xcrun simctl list devices
+  platformVersion: "17.2"
+
+  # ── Device ────────────────────────────────────────────────────────────────
+  # Simulator: use the exact name shown in Xcode's Devices & Simulators window.
+  # Real device: use the device name (e.g., "John's iPhone").
+  deviceName: "iPhone 15 Pro"          # CHANGE ME
+
+  # Unique Device Identifier — required for real devices, optional for simulators.
+  # Get it with: xcrun xctrace list devices
+  # Leave as placeholder for simulator runs; Appium ignores it when using a simulator name.
+  udid: "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"   # CHANGE ME (real device) or remove for simulator
+
+  # ── App Identification ────────────────────────────────────────────────────
+  # Bundle identifier of the app (found in Xcode → Signing & Capabilities, or Info.plist).
+  bundleId: "com.example.myapp"         # CHANGE ME
+
+  # ── App Binary (optional) ─────────────────────────────────────────────────
+  # Absolute path to the .app (simulator) or .ipa (real device).
+  # Comment out if the app is already installed.
+  # app: "/Users/monmac/work/robotframework_automation/app/ios/MyApp.app"
+
+  # ── Automation Engine ─────────────────────────────────────────────────────
+  # XCUITest is the only supported driver for iOS in Appium 2.x.
+  # Install it once with: appium driver install xcuitest
+  automationName: XCUITest
+
+  # ── Session Behavior ──────────────────────────────────────────────────────
+  # If true, preserves app data/login between test runs.
+  # Set to false for a clean state on every run.
+  noReset: false
+
+  # If true, completely wipes the app before the session (uninstall + reinstall).
+  fullReset: false
+
+  # Seconds Appium waits for a new command before killing the session.
+  newCommandTimeout: 300
+
+  # ── Simulator Settings ────────────────────────────────────────────────────
+  # Rotate simulator to portrait (0) or landscape (90/270) on session start.
+  # orientation: "PORTRAIT"
+
+  # Skip XCUITest server build if the simulator already has it installed.
+  # Speeds up subsequent test runs significantly.
+  usePrebuiltWDA: false
+
+  # Wait this many seconds for WebDriverAgent to launch before timing out.
+  wdaLaunchTimeout: 120000
+
+  # Wait this many seconds to connect to WebDriverAgent.
+  wdaConnectionTimeout: 120000
+
+  # ── Keyboard ──────────────────────────────────────────────────────────────
+  # Dismiss the iOS software keyboard automatically after typing.
+  # Useful when the keyboard obscures elements.
+  # resetKeyboard: true
+  # useNewWDA: false
+
+  # ── Language / Locale ─────────────────────────────────────────────────────
+  # language: "en"
+  # locale: "en_US"
+
+  # ── Real Device Code Signing ───────────────────────────────────────────────
+  # Required ONLY when running on a physical iOS device:
+  # xcodeOrgId: "XXXXXXXXXX"       # Team ID from Apple Developer account
+  # xcodeSigningId: "iPhone Developer"
+  # updatedWDABundleId: "com.yourcompany.WebDriverAgentRunner"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Appium Server URL
+# Default: http://localhost:4723
+# ─────────────────────────────────────────────────────────────────────────────
+appium_server:
+  url: "http://localhost:4723"
