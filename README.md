@@ -29,7 +29,7 @@ This project automates the mobile app UI using the **Page Object Model (POM)** p
 - **Keywords** are reusable building blocks for both
 - **YAML configs** keep capabilities and test data out of the code
 
-The example flows cover a **Login screen** and **Home screen**, which you adapt for your own app.
+The included test suites cover a **Login flow**, **Navigation Drawer**, and **Products Catalog screen**, which you adapt for your own app.
 
 ---
 
@@ -108,12 +108,19 @@ Edit the file that matches your target platform:
 - **Android:** `config/android_capabilities.yaml`
 - **iOS:** `config/ios_capabilities.yaml`
 
-At minimum, update these three fields for Android:
+At minimum, update these fields for Android:
 
 ```yaml
 deviceName: "Pixel_6_API_33"        # output of: adb devices
 appPackage: "com.example.myapp"     # your app's package name
 appActivity: ".MainActivity"         # your app's launch activity
+```
+
+Also set the matching app ID in `resources/variables/common_variables.robot` (used by the `Reset Application State` keyword):
+
+```robot
+${ANDROID_APP_ID}    com.example.myapp   # matches appPackage above
+${IOS_APP_ID}        com.example.myapp   # matches bundleId in ios_capabilities.yaml
 ```
 
 ### Step 5 — Start Appium and run smoke tests
@@ -168,23 +175,27 @@ robotframework_automation/
 │
 ├── resources/                       # Reusable Robot Framework code
 │   ├── variables/
-│   │   └── common_variables.robot  # Timeouts, URLs, element locators
+│   │   └── common_variables.robot  # Timeouts, app IDs, element locators
 │   ├── keywords/
 │   │   ├── common_keywords.robot   # Shared actions (click, type, scroll, screenshot)
 │   │   └── appium_keywords.robot   # Low-level platform helpers (alerts, platform detection)
 │   └── pages/                      # Page Object Model — one file per screen
 │       ├── base_page.robot         # Shared navigation + verification template
 │       ├── login_page.robot        # Login screen interactions + assertions
-│       └── home_page.robot         # Home screen interactions + assertions
+│       ├── home_page.robot         # Home screen interactions + assertions
+│       ├── navigation_page.robot   # Navigation drawer (hamburger menu) interactions
+│       └── products_page.robot     # Products catalog screen interactions + assertions
 │
 ├── tests/                           # Test suites
 │   ├── smoke/
-│   │   └── 01_login_smoke.robot    # 3 fast smoke tests for the login flow
+│   │   ├── 01_login_smoke.robot          # 3 smoke tests — direct login flow
+│   │   └── 02_products_smoke.robot       # 3 smoke tests — nav drawer + products (TC-AND/IOS-001,002,005)
 │   └── regression/
-│       └── 01_login_regression.robot  # 10 comprehensive regression tests
+│       ├── 01_login_regression.robot     # 10 regression tests — login edge cases
+│       └── 02_login_validation_regression.robot  # 2 regression tests — field validation (TC-AND/IOS-003,004)
 │
 ├── test_data/
-│   └── users.yaml                  # Test credentials and expected error messages
+│   └── users.yaml                  # Test credentials and expected error messages (incl. demo_user)
 │
 ├── scripts/
 │   ├── run_android.sh              # Android test runner with pre-flight checks
@@ -199,9 +210,9 @@ robotframework_automation/
 │   ├── TROUBLESHOOTING.md          # Top 10 issues and how to fix them
 │   └── GIT_WORKFLOW.md             # Git commands: clone, branch, commit, push, PR
 │
-├── app/
-│   ├── android/                    # Place your .apk files here
-│   └── ios/                        # Place your .app / .ipa files here
+├── apps/
+│   ├── android/                    # .apk builds (mda-2.2.0-25.apk)
+│   └── ios/                        # .ipa / .XCUITest builds (SauceLabs-Demo-App)
 │
 ├── requirements.txt                # Python dependencies
 ├── Makefile                        # Convenient make targets
@@ -242,12 +253,28 @@ capabilities:
 
 ### Changing Locators
 
-All element locators are in `resources/variables/common_variables.robot`.
+All element locators are in `resources/variables/common_variables.robot`, organised by screen:
 
 ```robot
-${USERNAME_FIELD}    accessibility_id=Username Input
-${PASSWORD_FIELD}    accessibility_id=Password Input
-${LOGIN_BUTTON}      accessibility_id=Login Button
+# Login screen
+${USERNAME_FIELD}               accessibility_id=Username Input
+${PASSWORD_FIELD}               accessibility_id=Password Input
+${LOGIN_BUTTON}                 accessibility_id=Login Button
+
+# Navigation drawer (hamburger menu ☰)
+${HAMBURGER_MENU}               accessibility_id=open menu
+${LOGIN_MENU_ITEM}              accessibility_id=menu item log in
+${LOGOUT_MENU_ITEM}             accessibility_id=menu item log out
+${LOGOUT_CONFIRM_BUTTON}        accessibility_id=Logout Confirm Button
+
+# Products catalog screen
+${PRODUCTS_SCREEN_INDICATOR}    accessibility_id=Products Screen
+${PRODUCT_ITEM}                 accessibility_id=Product Item
+${PRODUCT_TITLE}                accessibility_id=Product Title
+
+# Field-level validation error labels
+${USERNAME_ERROR_MESSAGE}       accessibility_id=Username Error Message
+${PASSWORD_ERROR_MESSAGE}       accessibility_id=Password Error Message
 ```
 
 Use **Appium Inspector** to find the correct `accessibility_id` (or `xpath`) for your app's elements.
@@ -273,13 +300,17 @@ make regression-android
 make regression-ios
 ```
 
-### By Tag (single test)
+### By Tag (single test or xlsx test ID)
 
 ```bash
-# Run only TC002 on Android
+# Run a specific original test by ID
 make run-tag PLATFORM=android TAG=TC002
 
-# Or directly with robot
+# Run a specific xlsx-sourced test by its Android or iOS ID
+robot --variable PLATFORM:android --include TC-AND-001 tests/
+robot --variable PLATFORM:ios     --include TC-IOS-001 tests/
+
+# Or directly with robot (original IDs)
 robot --variable PLATFORM:android --include TC002 tests/
 ```
 
@@ -367,6 +398,26 @@ Once you have the smoke tests passing against your app:
 5. **Parallel execution** — use Pabot (`pip install robotframework-pabot`) to run suites in parallel
 6. **Data-driven tests** — use the `DataDriver` library with `test_data/users.yaml` for table-driven tests
 7. **Video recording** — add `appium:recordVideo` to the capabilities to capture test videos
+
+---
+
+---
+
+## Test Inventory
+
+| Suite | File | Tests | Tags | Source |
+|-------|------|-------|------|--------|
+| Login Smoke | `tests/smoke/01_login_smoke.robot` | TC001–TC003 | `smoke login` | Original |
+| Products Smoke | `tests/smoke/02_products_smoke.robot` | TC-AND/IOS-001, 002, 005 | `smoke login products` | `docs/test-cases.xlsx` |
+| Login Regression | `tests/regression/01_login_regression.robot` | TC010–TC019 | `regression login` | Original |
+| Validation Regression | `tests/regression/02_login_validation_regression.robot` | TC-AND/IOS-003, 004 | `regression login validation` | `docs/test-cases.xlsx` |
+
+### Test Credentials
+
+| Credential set | Username | Password | Used by |
+|---|---|---|---|
+| Generic valid user | `testuser@example.com` | `ValidPass123!` | `01_*` suites |
+| SauceLabs Demo App user | `bod@example.com` | `10203040` | `02_*` suites (xlsx) |
 
 ---
 

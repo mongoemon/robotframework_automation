@@ -560,6 +560,70 @@ adb kill-server && adb start-server
 
 ---
 
+## Issue 11 — AppiumLibrary 2.x Keyword Compatibility
+
+### Symptoms
+- `No keyword with name 'Get Window Size' found`
+- `No keyword with name 'Wait Until Element Is Not Visible' found`
+- `No keyword with name 'Launch App' found. Did you mean: AppiumLibrary.Launch Application`
+- `Keyword 'BuiltIn.Log' got multiple values for argument 'level'`
+
+These errors appear after upgrading to **AppiumLibrary 2.x** or **Robot Framework 7.x**, both of which introduced breaking changes compared to earlier versions.
+
+### Root Causes and Fixes
+
+**Get Window Size removed**
+
+AppiumLibrary 2.x replaced the combined `Get Window Size` (which returned a dict) with separate `Get Window Width` and `Get Window Height` keywords.
+
+This project provides a backward-compatible wrapper keyword in `resources/keywords/common_keywords.robot`:
+
+```robot
+Get Window Size
+    ${width}=     Get Window Width
+    ${height}=    Get Window Height
+    &{size}=      Create Dictionary    width=${width}    height=${height}
+    RETURN    ${size}
+```
+
+No changes needed in your tests — just keep `resources/keywords/common_keywords.robot` imported.
+
+**Wait Until Element Is Not Visible removed**
+
+Replaced by `Wait Until Page Does Not Contain Element`. All occurrences in this project have been updated. If you see this error in your own keywords, change:
+
+```robot
+# Before
+Wait Until Element Is Not Visible    ${locator}    timeout=${TIMEOUT}
+
+# After
+Wait Until Page Does Not Contain Element    ${locator}    timeout=${TIMEOUT}
+```
+
+**Launch App removed / Launch Application deprecated**
+
+`Launch App` was removed and `Launch Application` was deprecated in favour of `Activate Application` (which requires the app's bundle ID / package name).
+
+Set `${ANDROID_APP_ID}` and `${IOS_APP_ID}` in `resources/variables/common_variables.robot` to match your `appPackage` / `bundleId` in the capabilities YAML. The `Launch Application` wrapper in `appium_keywords.robot` calls `Activate Application` automatically.
+
+**Log keyword gets "multiple values for argument 'level'"**
+
+In Robot Framework's space-separated format, **two or more consecutive spaces are argument separators**. A line like:
+
+```robot
+Log    Platform  : ${platform}    level=INFO
+#                ^^
+#          These 2 spaces split "Platform" and ": ${platform}" into separate args!
+```
+
+Is parsed as `Log(message="Platform", level=": ${platform}", level=INFO)` — the named `level` receives two values. Fix: remove the alignment spaces so the message contains no double-space sequence:
+
+```robot
+Log    Platform: ${platform}    level=INFO
+```
+
+---
+
 ## Getting More Help
 
 **1. Enable verbose Appium logging:**

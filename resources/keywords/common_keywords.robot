@@ -206,6 +206,15 @@ Wait For App To Load
     Sleep    2s    reason=Allow app splash screen to start rendering
     Log    App load wait complete.    level=INFO
 
+Get Window Size
+    [Documentation]    Returns screen dimensions as a dict with 'width' and 'height' keys.
+    ...                Bridges AppiumLibrary 2.x which removed the combined Get Window Size
+    ...                keyword and replaced it with Get Window Width / Get Window Height.
+    ${width}=     Get Window Width
+    ${height}=    Get Window Height
+    &{size}=      Create Dictionary    width=${width}    height=${height}
+    RETURN    ${size}
+
 Wait Until Element Disappears
     [Documentation]    Waits until the given element is no longer visible on screen.
     ...                Useful for waiting for loading spinners or progress bars to finish.
@@ -214,6 +223,6 @@ Wait Until Element Disappears
     ...                    locator    — AppiumLibrary locator for the element
     ...                    timeout    — how long to wait (default: ${TIMEOUT})
     [Arguments]    ${locator}    ${timeout}=${TIMEOUT}
-    Wait Until Element Is Not Visible    ${locator}    timeout=${timeout}
+    Wait Until Page Does Not Contain Element    ${locator}    timeout=${timeout}
     ...    error=Element '${locator}' is still visible after ${timeout}
     Log    Element disappeared: ${locator}    level=DEBUG

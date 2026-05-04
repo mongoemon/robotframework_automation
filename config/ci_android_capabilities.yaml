@@ -1,0 +1,45 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Appium Capabilities — Android CI (GitHub Actions)
+#
+# Used by:  .github/workflows/android-smoke.yml
+# Runner:   ubuntu-latest  +  reactivecircus/android-emulator-runner (API 33)
+#
+# The 'app' path is written at runtime by the workflow step
+# "Write CI Android capabilities" using the GITHUB_WORKSPACE env var.
+#
+# To use locally with the SauceLabs Demo App emulator:
+#   1. Start an AVD named Pixel_6_API_33 (API 33 / x86_64)
+#   2. robot --variable PLATFORM:android
+#            --variable ANDROID_CONFIG_FILE:config/ci_android_capabilities.yaml
+#            tests/
+# ─────────────────────────────────────────────────────────────────────────────
+
+capabilities:
+
+  platformName: Android
+  platformVersion: "13"
+
+  # GitHub Actions emulator name set by reactivecircus/android-emulator-runner
+  deviceName: "emulator-5554"
+
+  # SauceLabs My Demo App identifiers
+  appPackage: "com.saucelabs.mydemoapp.android"
+  appActivity: "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
+
+  # Path to the APK — written at runtime by the workflow (see android-smoke.yml)
+  # app: "<set by CI workflow>"
+
+  automationName: UiAutomator2
+
+  noReset: false
+  fullReset: false
+  newCommandTimeout: 300
+
+  # Speed up the run by disabling window animations
+  disableWindowAnimation: true
+
+  uiautomator2ServerLaunchTimeout: 60000
+  uiautomator2ServerInstallTimeout: 60000
+
+appium_server:
+  url: "http://localhost:4723"

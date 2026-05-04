@@ -95,6 +95,14 @@ edge_case_users:
 #   password: LockedPass789!
 #   expected_error: "Your account has been locked. Please contact support."
 
+# ── Demo App User (SauceLabs Demo App — bod@example.com) ─────────────────────
+# Credentials used in test-cases.xlsx (TC-AND-001 … TC-IOS-005).
+# This is the standard test account shipped with the SauceLabs Demo App.
+demo_user:
+  username: bod@example.com
+  password: "10203040"
+  display_name: Bob
+
 # ── Expected UI Strings ───────────────────────────────────────────────────────
 # Centralise UI text here so tests don't hard-code strings.
 ui_strings:
@@ -105,3 +113,10 @@ ui_strings:
   error_both_required: "Please enter your username and password."
   home_screen_title: "Home"
   logout_confirmation: "You have been logged out."
+
+# ── Demo App UI Strings (SauceLabs Demo App) ──────────────────────────────────
+# These strings match the actual error messages shown by mda-2.2.0-25.apk /
+# SauceLabs-Demo-App.ipa.  They differ from the generic placeholders above.
+demo_app_ui_strings:
+  error_username_required: "Username is required"
+  error_password_required: "Enter Password"

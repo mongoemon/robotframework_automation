@@ -1,0 +1,41 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Appium Capabilities — iOS CI (GitHub Actions)
+#
+# Used by:  .github/workflows/ios-smoke.yml
+# Runner:   macos-latest  (Xcode 15 / iOS 17 simulator)
+#
+# The 'udid' is written at runtime by the workflow step
+# "Write CI iOS capabilities" after booting the simulator.
+#
+# To use locally:
+#   1. xcrun simctl boot "iPhone 15 Pro"
+#   2. robot --variable PLATFORM:ios
+#            --variable IOS_CONFIG_FILE:config/ci_ios_capabilities.yaml
+#            tests/
+# ─────────────────────────────────────────────────────────────────────────────
+
+capabilities:
+
+  platformName: iOS
+  platformVersion: "17.2"
+
+  deviceName: "iPhone 15 Pro"
+
+  # UDID written at runtime by the workflow
+  # udid: "<set by CI workflow>"
+
+  # SauceLabs My Demo App iOS bundle identifier
+  bundleId: "com.saucelabs.mydemoapp.ios"
+
+  automationName: XCUITest
+
+  noReset: false
+  fullReset: false
+  newCommandTimeout: 300
+
+  usePrebuiltWDA: false
+  wdaLaunchTimeout: 120000
+  wdaConnectionTimeout: 120000
+
+appium_server:
+  url: "http://localhost:4723"

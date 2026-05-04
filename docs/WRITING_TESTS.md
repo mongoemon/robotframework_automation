@@ -25,7 +25,9 @@ This guide explains how the project is structured and walks you through adding n
                      ┌────────────────────────────────────┐
                      │          TEST SUITES               │
                      │   tests/smoke/01_login_smoke.robot │
+                     │   tests/smoke/02_products_smoke    │
                      │   tests/regression/01_login_*.robot│
+                     │   tests/regression/02_login_val_*  │
                      │                                    │
                      │  Calls page keywords in plain      │
                      │  English — no raw locators         │
@@ -35,6 +37,8 @@ This guide explains how the project is structured and walks you through adding n
                      │         PAGE OBJECTS               │
                      │   resources/pages/login_page.robot │
                      │   resources/pages/home_page.robot  │
+                     │   resources/pages/navigation_page  │
+                     │   resources/pages/products_page    │
                      │   resources/pages/base_page.robot  │
                      │                                    │
                      │  Encapsulates screen interactions  │
@@ -338,6 +342,8 @@ robot --variable PLATFORM:android --include TC050 tests/
 - IDs in smoke suite: TC001–TC009
 - IDs in regression suite: TC010+
 - IDs in new feature suites: TC100+, TC200+, etc.
+- IDs sourced from `docs/test-cases.xlsx` use the platform prefix format: `TC-AND-001 / TC-IOS-001 - Description`
+  - Tag both IDs so the test is reachable with `--include TC-AND-001` **or** `--include TC-IOS-001`
 
 ### Keywords
 
@@ -365,8 +371,10 @@ Tags let you run subsets of tests without editing files. Apply them at:
 |-----|---------|
 | `smoke` | Include in the quick smoke run |
 | `regression` | Include in the full regression run |
-| `TC001`, `TC002`... | Individual test IDs for targeting single tests |
+| `TC001`, `TC002`... | Individual test IDs for original suites |
+| `TC-AND-001`, `TC-IOS-001`... | Platform-specific IDs from `docs/test-cases.xlsx` |
 | `login` | Tests related to the login feature |
+| `products` | Tests related to the Products catalog screen |
 | `home` | Tests related to the home screen |
 | `happy-path` | Positive scenarios (valid inputs) |
 | `negative` | Negative scenarios (invalid inputs, error paths) |
@@ -375,6 +383,8 @@ Tags let you run subsets of tests without editing files. Apply them at:
 | `security` | Security-related checks |
 | `ux` | User experience checks (UX) |
 | `edge-case` | Boundary conditions and unusual inputs |
+| `content` | Tests that verify screen content (e.g., product count) |
+| `logout` | Tests that exercise the logout flow |
 
 ### Running by Tag Examples
 
@@ -481,3 +491,56 @@ Should Contain    ${text_lower}    hello
 Run Keyword For Platform
 ...    Android Specific Keyword    iOS Specific Keyword    optional_arg
 ```
+
+### Navigation drawer flow (hamburger menu)
+
+Some tests start from the Products screen and must navigate to Login via the hamburger menu.
+Use `navigation_page.robot` for all drawer interactions — never call raw locators directly:
+
+```robot
+# Reach the Login screen via the navigation drawer
+Verify Products Screen Is Loaded
+Navigate To Login Via Menu        # opens drawer → taps "Log In"
+Verify Login Page Is Loaded
+Enter Username    ${DEMO_EMAIL}
+Enter Password    ${DEMO_PASSWORD}
+Tap Login Button
+Verify Products Screen Is Loaded
+```
+
+Logout flow:
+
+```robot
+# Open drawer → tap "Log Out" → confirm dialog
+Logout Via Menu
+Verify Products Screen Is Loaded
+Open Navigation Menu
+Verify Login Menu Item Is Visible    # confirms session was cleared
+Close Navigation Menu
+```
+
+Teardown for navigation drawer tests:
+
+```robot
+Test Teardown    Return To Products Screen Unauthenticated
+```
+
+`Return To Products Screen Unauthenticated` (defined in `navigation_page.robot`) handles all
+post-test states: on Login screen, on authenticated Products screen, or drawer still open.
+
+### Test credentials for xlsx-sourced tests
+
+The suites in `02_products_smoke.robot` and `02_login_validation_regression.robot` use the
+SauceLabs Demo App's built-in account defined in `test_data/users.yaml → demo_user`:
+
+```robot
+${DEMO_EMAIL}        bod@example.com
+${DEMO_PASSWORD}     10203040
+```
+
+Expected field-level errors for this app:
+
+| Scenario | Expected error text |
+|---|---|
+| Empty username | `Username is required` |
+| Empty password | `Enter Password` |

@@ -96,13 +96,11 @@ Wait For Loading Indicator To Disappear
     ...                Example:
     ...                    Wait For Loading Indicator To Disappear    accessibility_id=Loading Spinner
     [Arguments]    ${loading_locator}    ${timeout}=${TIMEOUT}
-    ${is_loading}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${loading_locator}
-    Run Keyword If    ${is_loading}
-    ...    Run Keywords
-    ...        Log    Loading indicator found — waiting for it to disappear.    level=INFO
-    ...    AND Wait Until Element Is Not Visible    ${loading_locator}    timeout=${timeout}
-    ...        error=Loading indicator '${loading_locator}' did not disappear after ${timeout}
+    ${is_loading}=    Run Keyword And Return Status    Element Should Be Visible    ${loading_locator}
+    Return From Keyword If    not ${is_loading}
+    Log    Loading indicator found — waiting for it to disappear.    level=INFO
+    Wait Until Page Does Not Contain Element    ${loading_locator}    timeout=${timeout}
+    ...    error=Loading indicator '${loading_locator}' did not disappear after ${timeout}
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Scroll to Element (page-level helper)

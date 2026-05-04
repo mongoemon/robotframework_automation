@@ -17,18 +17,16 @@ dist/
 build/
 
 # ─── Robot Framework Output ───────────────────────────────────────────────────
-# Keep the results/ folder but ignore generated output files
-results/*.html
-results/*.xml
-results/*.log
-results/screenshots/
-results/video/
+# Ignore everything inside results/ except the .gitkeep placeholder
+results/**
+!results/.gitkeep
 
 # ─── Appium / Mobile ──────────────────────────────────────────────────────────
-# App binaries (commit only to LFS if needed, never directly)
+# App binaries (use Git LFS or download in CI — never commit directly)
 *.apk
 *.ipa
 *.aab
+*.app
 
 # ─── macOS ────────────────────────────────────────────────────────────────────
 .DS_Store
@@ -60,5 +58,9 @@ appium.log
 
 # Keep .gitkeep placeholder files
 !results/.gitkeep
+!apps/.gitkeep
 !app/android/.gitkeep
 !app/ios/.gitkeep
+
+# CI-generated capability files (written at runtime by GitHub Actions)
+config/ci_*_resolved.yaml

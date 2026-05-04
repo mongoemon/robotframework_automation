@@ -12,6 +12,18 @@ Documentation    Common variables shared across the entire test suite.
 ${APPIUM_URL}           http://localhost:4723
 
 # ─────────────────────────────────────────────────────────────────────────────
+# App Identifiers
+# Used by Activate Application (e.g., after Reset Application State).
+# Override at runtime: robot --variable ANDROID_APP_ID:com.your.app
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Android package name — must match appPackage in android_capabilities.yaml
+${ANDROID_APP_ID}       com.example.myapp
+
+# iOS bundle identifier — must match bundleId in ios_capabilities.yaml
+${IOS_APP_ID}           com.example.myapp
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Platform
 # Set at runtime:  robot --variable PLATFORM:ios  or  PLATFORM=ios make smoke-ios
 # ─────────────────────────────────────────────────────────────────────────────
@@ -109,3 +121,42 @@ ${ALERT_ALLOW_BUTTON}           accessibility_id=Allow
 
 # Back navigation button (Android hardware or iOS navigation bar)
 ${BACK_BUTTON}                  accessibility_id=Navigate up
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Navigation Drawer — Element Locators
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Hamburger / navigation drawer toggle (☰) button
+${HAMBURGER_MENU}               accessibility_id=open menu
+
+# "Log In" item inside the navigation drawer — visible when not authenticated
+${LOGIN_MENU_ITEM}              accessibility_id=menu item log in
+
+# "Log Out" item inside the navigation drawer — visible when authenticated
+${LOGOUT_MENU_ITEM}             accessibility_id=menu item log out
+
+# "LOGOUT" confirm button inside the logout confirmation dialog
+${LOGOUT_CONFIRM_BUTTON}        accessibility_id=Logout Confirm Button
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Products Catalog Screen — Element Locators
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Page-level identifier to confirm the Products catalog screen is displayed
+${PRODUCTS_SCREEN_INDICATOR}    accessibility_id=Products Screen
+
+# Individual product card / list item in the catalog
+${PRODUCT_ITEM}                 accessibility_id=Product Item
+
+# Product title text inside a product card
+${PRODUCT_TITLE}                accessibility_id=Product Title
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Field-Level Validation Error Messages
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Error label shown below the username field when submitted empty
+${USERNAME_ERROR_MESSAGE}       accessibility_id=Username Error Message
+
+# Error label shown below the password field when submitted empty
+${PASSWORD_ERROR_MESSAGE}       accessibility_id=Password Error Message

@@ -72,9 +72,12 @@ Reset Application State
     ...    AND Launch Application
 
 Launch Application
-    [Documentation]    Brings the app under test back to the foreground.
-    ...                Equivalent to tapping the app icon from the home screen.
-    Launch App
+    [Documentation]    Activates (brings to foreground) the app under test.
+    ...                Set ${ANDROID_APP_ID} / ${IOS_APP_ID} in common_variables.robot
+    ...                or pass --variable ANDROID_APP_ID:com.your.app at runtime.
+    ${platform}=    Get Current Platform
+    ${app_id}=      Set Variable If    '${platform}' == 'ios'    ${IOS_APP_ID}    ${ANDROID_APP_ID}
+    Activate Application    ${app_id}
 
 Background Application
     [Documentation]    Sends the app to the background for the given number of seconds,
@@ -153,8 +156,8 @@ Log Device Information
     ...                Call once at the beginning of the suite for traceability.
     ${platform}=    Get Current Platform
     ${size}=        Get Window Size
-    Log    Platform  : ${platform}                        level=INFO
-    Log    Screen    : ${size}[width] x ${size}[height]   level=INFO
+    Log    Platform: ${platform}    level=INFO
+    Log    Screen: ${size}[width] x ${size}[height]    level=INFO
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Scroll Helpers (platform-aware)

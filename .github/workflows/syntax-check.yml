@@ -1,0 +1,53 @@
+name: Syntax Check
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Runs a Robot Framework dry-run on every push and pull-request.
+# No device or Appium server is needed — the dry-run resolves all keyword
+# imports and flags syntax errors without executing any steps.
+#
+# This is the fastest gate in the pipeline (~60 seconds).
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dry-run:
+    name: RF Dry-Run (all suites)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run dry-run on all test suites
+        run: |
+          python -m robot \
+            --dryrun \
+            --nostatusrc \
+            --variable PLATFORM:android \
+            --outputdir results/dryrun \
+            --log    log.html \
+            --report report.html \
+            --output output.xml \
+            tests/
+
+      - name: Upload dry-run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-report-${{ github.run_number }}
+          path: results/dryrun/
+          retention-days: 7

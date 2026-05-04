@@ -1,0 +1,171 @@
+name: Android Smoke Tests
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Runs the smoke test suite against an Android emulator (API 33 / x86_64).
+#
+# Triggers:
+#   • Push to main  — catches regressions before they land
+#   • Manual        — workflow_dispatch for on-demand runs
+#   • Nightly       — scheduled at 02:00 UTC for daily health check
+#
+# App binary:
+#   Downloaded from the SauceLabs My Demo App GitHub releases.
+#   Override with the ANDROID_APK_URL repository variable if you host the APK
+#   elsewhere (Settings → Secrets and variables → Variables → New repository
+#   variable → Name: ANDROID_APK_URL).
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"   # 02:00 UTC daily
+
+env:
+  ANDROID_APK_URL: ${{ vars.ANDROID_APK_URL || 'https://github.com/saucelabs/my-demo-app-android/releases/download/v2.2.0/mda-2.2.0-25.apk' }}
+  APK_PATH:        apps/android/mda-2.2.0-25.apk
+
+jobs:
+  smoke-android:
+    name: Smoke — Android API 33
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Source ──────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Python ──────────────────────────────────────────────────────────────
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      # ── Node / Appium ────────────────────────────────────────────────────────
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Appium 2 + UiAutomator2 driver
+        run: |
+          npm install -g appium
+          appium driver install uiautomator2
+          appium --version
+
+      # ── App binary ──────────────────────────────────────────────────────────
+      - name: Cache APK
+        id: cache-apk
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.APK_PATH }}
+          key: apk-${{ env.ANDROID_APK_URL }}
+
+      - name: Download APK
+        if: steps.cache-apk.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p apps/android
+          curl -fsSL "$ANDROID_APK_URL" -o "$APK_PATH"
+          echo "APK downloaded: $(du -sh $APK_PATH | cut -f1)"
+
+      # ── CI capabilities ─────────────────────────────────────────────────────
+      - name: Write CI Android capabilities
+        run: |
+          python - <<'EOF'
+          import yaml, os
+
+          caps = {
+            "capabilities": {
+              "platformName":    "Android",
+              "platformVersion": "13",
+              "deviceName":      "emulator-5554",
+              "appPackage":      "com.saucelabs.mydemoapp.android",
+              "appActivity":     "com.saucelabs.mydemoapp.android.view.activities.SplashActivity",
+              "app":             os.path.join(os.environ["GITHUB_WORKSPACE"], os.environ["APK_PATH"]),
+              "automationName":  "UiAutomator2",
+              "noReset":         False,
+              "fullReset":       False,
+              "newCommandTimeout":              300,
+              "disableWindowAnimation":         True,
+              "uiautomator2ServerLaunchTimeout":  60000,
+              "uiautomator2ServerInstallTimeout": 60000,
+            },
+            "appium_server": {"url": "http://localhost:4723"},
+          }
+          with open("config/ci_android_capabilities.yaml", "w") as f:
+            yaml.dump(caps, f, default_flow_style=False)
+          print("CI Android capabilities written.")
+          EOF
+
+      # ── Run tests inside emulator ────────────────────────────────────────────
+      - name: Run smoke tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level:         33
+          arch:              x86_64
+          profile:           pixel_6
+          avd-name:          Pixel_6_API_33
+          force-avd-creation: false
+          emulator-options:  >-
+            -no-snapshot-save
+            -no-window
+            -gpu swiftshader_indirect
+            -noaudio
+            -no-boot-anim
+          disable-animations: true
+          script: |
+            # Start Appium in the background and wait until it responds
+            appium --log results/appium.log &
+            timeout 60 bash -c 'until curl -s http://localhost:4723/status > /dev/null; do sleep 3; done'
+            echo "Appium is ready."
+
+            # Run smoke tests
+            python -m robot \
+              --variable PLATFORM:android \
+              --variable ANDROID_CONFIG_FILE:config/ci_android_capabilities.yaml \
+              --include smoke \
+              --outputdir results/smoke_android \
+              --log    log.html \
+              --report report.html \
+              --output output.xml \
+              --loglevel INFO \
+              tests/
+
+      # ── Artefacts ────────────────────────────────────────────────────────────
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-smoke-results-${{ github.run_number }}
+          path: |
+            results/smoke_android/
+            results/appium.log
+          retention-days: 14
+
+      # ── Job summary ──────────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Android Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python - <<'EOF'
+          import xml.etree.ElementTree as ET, os
+
+          report = "results/smoke_android/output.xml"
+          if not os.path.exists(report):
+            print("output.xml not found — tests may not have started.")
+          else:
+            root = ET.parse(report).getroot()
+            stats = root.find(".//statistics/total/stat")
+            if stats is not None:
+              passed = stats.get("pass", "0")
+              failed = stats.get("fail", "0")
+              total  = int(passed) + int(failed)
+              emoji  = "✅" if failed == "0" else "❌"
+              print(f"{emoji} **{passed}/{total} tests passed**")
+          EOF
