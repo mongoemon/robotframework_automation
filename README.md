@@ -15,8 +15,9 @@ Supports both **Android** and **iOS** with a single codebase, on **macOS and Win
 4. [Project Structure](#project-structure)
 5. [Configuration — Adapt to Your App](#configuration)
 6. [Running Tests](#running-tests)
-7. [Understanding Results](#understanding-results)
-8. [Next Steps](#next-steps)
+7. [Running on Emulator / Simulator](#running-on-emulator--simulator)
+8. [Understanding Results](#understanding-results)
+9. [Next Steps](#next-steps)
 
 ---
 
@@ -206,6 +207,7 @@ robotframework_automation/
 │
 ├── docs/
 │   ├── SETUP_GUIDE.md              # Full macOS & Windows environment setup walkthrough
+│   ├── RUNNING_ON_DEVICE.md        # Step-by-step: run tests on Android emulator & iOS simulator
 │   ├── WRITING_TESTS.md            # How to add new pages and test cases
 │   ├── TROUBLESHOOTING.md          # Top 10 issues and how to fix them
 │   └── GIT_WORKFLOW.md             # Git commands: clone, branch, commit, push, PR
@@ -361,6 +363,63 @@ robot `
 
 ---
 
+## Running on Emulator / Simulator
+
+Full step-by-step instructions are in **[docs/RUNNING_ON_DEVICE.md](docs/RUNNING_ON_DEVICE.md)**. Here is the minimal sequence for each platform.
+
+### Android Emulator (macOS or Windows)
+
+```bash
+# 1. Boot emulator and wait for it to be ready
+emulator -avd Pixel_6_API_33 &
+adb wait-for-device && adb shell getprop sys.boot_completed  # wait for: 1
+
+# 2. Install the app (download once to apps/android/ first)
+adb install -r apps/android/mda-2.2.0-25.apk
+
+# 3. Start Appium (separate terminal)
+appium
+
+# 4. Run smoke tests
+python -m robot \
+  --variable PLATFORM:android \
+  --include smoke \
+  --outputdir results/smoke_android \
+  tests/
+```
+
+Configuration: `config/android_capabilities.yaml` — set `deviceName` to match `adb devices` output.
+
+### iOS Simulator (macOS only)
+
+```bash
+# 1. Boot simulator
+xcrun simctl boot "iPhone 15 Pro"
+open -a Simulator
+
+# 2. Install the app (download .app bundle to apps/ios/ first)
+UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0-9-]{36}')
+xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.app
+
+# 3. Start Appium (separate terminal)
+appium
+
+# 4. Run smoke tests
+python -m robot \
+  --variable PLATFORM:ios \
+  --include smoke \
+  --outputdir results/smoke_ios \
+  tests/
+```
+
+Configuration: `config/ios_capabilities.yaml` — set `udid` to the value from Step 2.
+
+> **Download the demo apps:**  
+> Android APK: https://github.com/saucelabs/my-demo-app-android/releases/tag/v2.2.0  
+> iOS Simulator build: https://github.com/saucelabs/my-demo-app-ios/releases/tag/v1.0.3
+
+---
+
 ## Understanding Results
 
 After each run, Robot Framework generates three files in `results/run_TIMESTAMP/`:
@@ -391,13 +450,15 @@ Screenshots are taken automatically:
 
 Once you have the smoke tests passing against your app:
 
-1. **Learn Git basics** — see `docs/GIT_WORKFLOW.md` for clone, branch, commit, push, and PR commands
-2. **Add your own page objects** — follow the guide in `docs/WRITING_TESTS.md`
-3. **Expand the regression suite** — add more edge cases to `tests/regression/`
-4. **Connect to CI/CD** — run `make smoke-android` in your GitHub Actions / GitLab CI / Jenkins pipeline
-5. **Parallel execution** — use Pabot (`pip install robotframework-pabot`) to run suites in parallel
-6. **Data-driven tests** — use the `DataDriver` library with `test_data/users.yaml` for table-driven tests
-7. **Video recording** — add `appium:recordVideo` to the capabilities to capture test videos
+1. **Run on a device** — see `docs/RUNNING_ON_DEVICE.md` for the full Android emulator and iOS simulator walkthrough
+2. **Find your real locators** — use Appium Inspector (§ 4 in `docs/RUNNING_ON_DEVICE.md`) to discover the actual `accessibility_id` values for your app and update `resources/variables/common_variables.robot`
+3. **Learn Git basics** — see `docs/GIT_WORKFLOW.md` for clone, branch, commit, push, and PR commands
+4. **Add your own page objects** — follow the guide in `docs/WRITING_TESTS.md`
+5. **Expand the regression suite** — add more edge cases to `tests/regression/`
+6. **Connect to CI/CD** — run `make smoke-android` in your GitHub Actions / GitLab CI / Jenkins pipeline
+7. **Parallel execution** — use Pabot (`pip install robotframework-pabot`) to run suites in parallel
+8. **Data-driven tests** — use the `DataDriver` library with `test_data/users.yaml` for table-driven tests
+9. **Video recording** — add `appium:recordVideo` to the capabilities to capture test videos
 
 ---
 

@@ -695,7 +695,10 @@ powershell -Command "Invoke-RestMethod http://localhost:4723/status"
 robot --dryrun --variable PLATFORM:android tests\
 ```
 
-If all steps pass, you are ready to run tests. Go to the [README Quick Start](../README.md#quick-start).
+If all steps pass, you are ready to run tests. Go to:
+
+- [README Quick Start](../README.md#quick-start) — five-step overview
+- [RUNNING_ON_DEVICE.md](RUNNING_ON_DEVICE.md) — detailed emulator/simulator run guide with app download, locator discovery, and per-platform troubleshooting
 
 ---
 

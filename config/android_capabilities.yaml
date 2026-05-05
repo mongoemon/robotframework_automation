@@ -17,23 +17,15 @@ capabilities:
 
   # ── Platform ──────────────────────────────────────────────────────────────
   platformName: Android
-  # The minimum Android API level required by your app.
-  # Common values: 11 (Android 11), 12 (Android 12), 13 (Android 13)
-  platformVersion: "13"
+  platformVersion: "16"
 
   # ── Device ────────────────────────────────────────────────────────────────
-  # Run 'adb devices -l' and copy the model or serial here.
-  # For an emulator this is typically the AVD name shown in Android Studio.
-  deviceName: "Pixel_6_API_33"
+  # Run 'adb devices -l' and copy the serial here.
+  deviceName: "emulator-5554"
 
   # ── App Identification ────────────────────────────────────────────────────
-  # The package name of the app you want to test.
-  # Find it with: adb shell pm list packages | grep <your-app-keyword>
-  appPackage: "com.example.myapp"           # CHANGE ME
-
-  # The Activity that should be launched (usually the main/splash activity).
-  # Find it with: adb shell dumpsys package com.example.myapp | grep -i activity
-  appActivity: "com.example.myapp.MainActivity"   # CHANGE ME
+  appPackage: "com.saucelabs.mydemoapp.android"
+  appActivity: "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
 
   # ── Automation Engine ─────────────────────────────────────────────────────
   # UiAutomator2 is the recommended driver for Android (Appium 2.x).

@@ -18,10 +18,10 @@ ${APPIUM_URL}           http://localhost:4723
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Android package name — must match appPackage in android_capabilities.yaml
-${ANDROID_APP_ID}       com.example.myapp
+${ANDROID_APP_ID}       com.saucelabs.mydemoapp.android
 
 # iOS bundle identifier — must match bundleId in ios_capabilities.yaml
-${IOS_APP_ID}           com.example.myapp
+${IOS_APP_ID}           com.saucelabs.mydemoapp.ios
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Platform
