@@ -153,20 +153,24 @@ Return To Products Screen Unauthenticated
     ...                    - Drawer open, any auth   → Close drawer, then handle auth
     ...
     ...                Safe to call at the end of any test that uses the nav-drawer flow.
-    # If on the Login screen, go back to the Products screen first.
+    # If on the Login screen, terminate and restart the app to reach the Products screen.
+    # NOTE: On Android, the Login fragment has no back stack entry — Navigate Back exits
+    # the app entirely. Terminate + Activate restarts it fresh to the Products screen.
     ${on_login}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGIN_PAGE_INDICATOR}
-    Run Keyword If    ${on_login}    Navigate Back
+    ...    Wait Until Element Is Visible    ${LOGIN_PAGE_INDICATOR}    timeout=5s
+    ${_app_id}=    Set Variable If    '${PLATFORM}' == 'ios'    ${IOS_APP_ID}    ${ANDROID_APP_ID}
+    Run Keyword If    ${on_login}    Terminate Application    ${_app_id}
+    Run Keyword If    ${on_login}    Activate Application    ${_app_id}
     # Wait to land on Products screen.
     ${on_products}=    Run Keyword And Return Status
-    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=10s
+    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=${TIMEOUT}
     Run Keyword If    not ${on_products}
     ...    Log    Warning: Could not navigate back to Products screen for teardown.    level=WARN
     Return From Keyword If    not ${on_products}
     # Open the menu to check authentication state.
     Open Navigation Menu
     ${authenticated}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGOUT_MENU_ITEM}
+    ...    Wait Until Element Is Visible    ${LOGOUT_MENU_ITEM}    timeout=3s
     Run Keyword If    ${authenticated}    Tap Logout Menu Item
     Run Keyword If    ${authenticated}    Confirm Logout
     Run Keyword If    not ${authenticated}    Navigate Back

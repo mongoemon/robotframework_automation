@@ -260,30 +260,28 @@ Return To Login Screen
     ...                    4. If somewhere else → navigate back and retry.
     # Already on the login screen — nothing to do.
     ${on_login}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGIN_PAGE_INDICATOR}
+    ...    Wait Until Element Is Visible    ${LOGIN_PAGE_INDICATOR}    timeout=5s
     Return From Keyword If    ${on_login}
-    # Navigate back to Products if we're on a sub-screen.
-    Run Keyword And Ignore Error    Navigate Back
     # If authenticated, log out first.
     ${on_products}=    Run Keyword And Return Status
-    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=5s
+    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=${TIMEOUT}
     Run Keyword If    not ${on_products}
     ...    Log    Warning: Could not reach Products screen in teardown.    level=WARN
     Return From Keyword If    not ${on_products}
     # Check authentication state via nav drawer.
     Open Navigation Menu
     ${authenticated}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGOUT_MENU_ITEM}
+    ...    Wait Until Element Is Visible    ${LOGOUT_MENU_ITEM}    timeout=3s
     Run Keyword If    ${authenticated}    Tap Logout Menu Item
     Run Keyword If    ${authenticated}    Confirm Logout
     Run Keyword If    not ${authenticated}    Close Navigation Menu
     # Now navigate to Login via menu.
     Open Navigation Menu
     ${login_item}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGIN_MENU_ITEM}
+    ...    Wait Until Element Is Visible    ${LOGIN_MENU_ITEM}    timeout=3s
     Run Keyword If    ${login_item}    Tap Login Menu Item
     ...    ELSE    Close Navigation Menu
     ${on_login_now}=    Run Keyword And Return Status
-    ...    Wait Until Element Is Visible    ${LOGIN_PAGE_INDICATOR}    timeout=10s
+    ...    Wait Until Element Is Visible    ${LOGIN_PAGE_INDICATOR}    timeout=${TIMEOUT}
     Run Keyword If    not ${on_login_now}
     ...    Log    Warning: Could not navigate back to Login screen for next test.    level=WARN

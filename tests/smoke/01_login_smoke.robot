@@ -126,11 +126,11 @@ Return To Login Screen In Smoke
     [Documentation]    Teardown helper — returns the app to the Login screen between tests.
     ...                Handles three states: already on Login, on Products authenticated, on Products unauthenticated.
     ${on_login}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGIN_PAGE_INDICATOR}
+    ...    Wait Until Element Is Visible    ${LOGIN_PAGE_INDICATOR}    timeout=5s
     Return From Keyword If    ${on_login}
     Open Navigation Menu
     ${authenticated}=    Run Keyword And Return Status
-    ...    Element Should Be Visible    ${LOGOUT_MENU_ITEM}
+    ...    Wait Until Element Is Visible    ${LOGOUT_MENU_ITEM}    timeout=3s
     Run Keyword If    ${authenticated}    Tap Logout Menu Item
     Run Keyword If    ${authenticated}    Confirm Logout
     Run Keyword If    not ${authenticated}    Close Navigation Menu

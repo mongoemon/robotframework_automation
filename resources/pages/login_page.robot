@@ -45,7 +45,6 @@ Enter Username
     ...                    Enter Username    testuser@example.com
     [Arguments]    ${username}
     Wait And Input Text    ${USERNAME_FIELD}    ${username}
-    Hide Keyboard If Visible
     Log    Entered username: ${username}    level=INFO
 
 Enter Password
@@ -60,7 +59,6 @@ Enter Password
     ...                    Enter Password    ${VALID_USER_PASSWORD}
     [Arguments]    ${password}
     Wait And Input Text    ${PASSWORD_FIELD}    ${password}
-    Hide Keyboard If Visible
     Log    Password entered (value masked in report)    level=INFO
 
 Clear Username Field
