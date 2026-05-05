@@ -17,38 +17,41 @@ capabilities:
 
   # ── Platform ──────────────────────────────────────────────────────────────
   platformName: Android
+  # Android 16 (Baklava) — API level 36
+  # Verify with: adb shell getprop ro.build.version.release
   platformVersion: "16"
 
   # ── Device ────────────────────────────────────────────────────────────────
-  # Run 'adb devices -l' and copy the serial here.
+  # Serial shown by: adb devices
+  # Model: sdk_gphone64_x86_64  (Google Play emulator, x86_64)
   deviceName: "emulator-5554"
 
   # ── App Identification ────────────────────────────────────────────────────
+  # SauceLabs My Demo App v2.2.0 (mda-2.2.0-25.apk)
+  # Install once with: adb install -r apps/android/mda-2.2.0-25.apk
   appPackage: "com.saucelabs.mydemoapp.android"
   appActivity: "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
 
   # ── Automation Engine ─────────────────────────────────────────────────────
-  # UiAutomator2 is the recommended driver for Android (Appium 2.x).
-  # Install it once with: appium driver install uiautomator2
+  # UiAutomator2 v4.2.4 — the recommended driver for Android (Appium 2.x).
+  # Install once with: appium driver install uiautomator2
   automationName: UiAutomator2
 
   # ── Session Behavior ──────────────────────────────────────────────────────
-  # If true, the app keeps its data between test runs (no fresh login every run).
-  # Set to false if tests require a clean app state each run.
+  # false = app state is reset between sessions (fresh install behaviour).
+  # Set to true only if tests explicitly manage their own state.
   noReset: false
 
-  # If true, prevents Appium from uninstalling/reinstalling the app before the session.
-  # Faster startup, but the app must already be installed.
+  # false = Appium may reinstall the app; set true to skip reinstall for faster startup.
   fullReset: false
 
   # Seconds Appium waits for a new command before closing the session.
-  # Increase this if you have long pauses (e.g., CI pipelines).
   newCommandTimeout: 300
 
   # ── App Binary (optional) ─────────────────────────────────────────────────
-  # Absolute path to the .apk file. Appium will install it before the session.
-  # Comment this out if the app is already installed on the device.
-  # app: "/Users/monmac/work/robotframework_automation/app/android/myapp.apk"
+  # Uncomment and set an absolute path to have Appium install the APK automatically.
+  # If the app is already installed, leave this commented out.
+  # app: "C:/work/mobile/robotframework_automation/apps/android/mda-2.2.0-25.apk"
 
   # ── Language / Locale ─────────────────────────────────────────────────────
   # Force a specific language/locale so tests are language-independent.
@@ -56,11 +59,11 @@ capabilities:
   # locale: "US"
 
   # ── Performance / Logging ─────────────────────────────────────────────────
-  # Print Appium server logs to stdout (useful for debugging).
-  # printPageSourceOnFindFailure: true
-
   # Skip device animations — speeds up tests significantly.
   disableWindowAnimation: true
+
+  # Uncomment to print page source when element lookup fails (verbose, useful for debugging).
+  # printPageSourceOnFindFailure: true
 
   # ── Timeouts ──────────────────────────────────────────────────────────────
   # How long UiAutomator2 waits for elements to appear (milliseconds).

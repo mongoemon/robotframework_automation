@@ -47,11 +47,14 @@ Suite Setup       Open Mobile Application
 Suite Teardown    Close Mobile Application
 
 # ── Test-level setup / teardown ───────────────────────────────────────────────
-Test Setup        Take Screenshot With Timestamp
+# Video recording wraps each test; screenshot is taken as a still precondition/result frame.
+# Videos are saved to the output directory as <TestName>.mp4 and embedded in log.html.
+Test Setup        Run Keywords    Start Test Video Recording    AND    Take Screenshot With Timestamp
 
 Test Teardown     Run Keywords
-...               Take Screenshot With Timestamp
-...               AND    Run Keyword If Test Failed    Log    TEST FAILED — screenshot saved above.    level=WARN
+...               Stop And Save Test Video
+...               AND    Take Screenshot With Timestamp
+...               AND    Run Keyword If Test Failed    Log    TEST FAILED — video and screenshot saved above.    level=WARN
 ...               AND    Return To Products Screen Unauthenticated
 
 # ── Default tags applied to every test in this file ───────────────────────────

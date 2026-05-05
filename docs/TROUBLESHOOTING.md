@@ -624,6 +624,48 @@ Log    Platform: ${platform}    level=INFO
 
 ---
 
+## Issue 12 — Screen Recording / Video
+
+### Symptoms
+
+- `.mp4` files not appearing in the output directory after a run
+- `There is no Active Screen Record Session` in the log
+- Video file is 0 bytes or very small
+
+### Causes and Fixes
+
+**No `.mp4` files created**
+
+1. `Start Screen Recording` failed silently (errors are intentionally ignored so they don't block tests). Enable verbose logging to see the real error:
+   ```bash
+   python -m robot --variable PLATFORM:android --loglevel DEBUG tests/
+   ```
+   Look for lines like `[WARN] AppiumLibrary: startRecordingScreen ...`.
+
+2. The Appium session was not started — recording requires an active device session. Confirm the session is open before teardown runs.
+
+**`There is no Active Screen Record Session`**
+
+`Stop Screen Recording` was called without a matching `Start Screen Recording`. This happens if the Setup fails before reaching the recording step, or if the session was reset mid-test.
+
+The project wraps both calls in `Run Keyword And Ignore Error`, so this warning will appear in the log but will not fail the test.
+
+**Video is 0 bytes or very short**
+
+The test completed in under 1 second. This can happen when the first `Element Should Be Visible` fails immediately — the test body exits before any meaningful frames are recorded. Fix the locator issue first (see Issue 5 — Element Not Found).
+
+**Maximum recording length exceeded**
+
+Android's `adb screenrecord` caps at 3 minutes (180 seconds). If a single test runs longer, the video will be cut off. Increase `timeLimit` in `Start Test Video Recording` in `resources/keywords/appium_keywords.robot` — but note 180 s is the API maximum for Android.
+
+**Watching videos**
+
+- Open `results/<run>/log.html` in a browser.
+- Expand any test → expand the `Teardown` node → expand `Stop And Save Test Video`.
+- The video player is embedded inline (Android only). On iOS, open the `.mp4` file directly.
+
+---
+
 ## Getting More Help
 
 **1. Enable verbose Appium logging:**

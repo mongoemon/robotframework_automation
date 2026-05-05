@@ -6,6 +6,66 @@ This guide is the end-to-end reference for executing the test suite against a ru
 
 ---
 
+## Current Emulator Configuration (verified)
+
+| Parameter | Value |
+|-----------|-------|
+| Android version | 16 (Baklava) |
+| API level | 36 |
+| Device serial | `emulator-5554` |
+| AVD model | `sdk_gphone64_x86_64` (Google Play, x86\_64) |
+| App under test | SauceLabs My Demo App v2.2.0 (`mda-2.2.0-25.apk`) |
+| App package | `com.saucelabs.mydemoapp.android` |
+| Launch activity | `...view.activities.SplashActivity` |
+| Appium server | 2.19.0 |
+| UiAutomator2 driver | 4.2.4 |
+
+These values are the defaults in `config/android_capabilities.yaml`. Verify with:
+
+```bash
+adb shell getprop ro.build.version.release   # → 16
+adb shell getprop ro.build.version.sdk       # → 36
+adb devices                                  # → emulator-5554   device
+appium --version                             # → 2.19.0
+appium driver list --installed               # → uiautomator2@4.2.4
+```
+
+---
+
+## Video Recording
+
+Every test automatically records a screen video. No extra setup is required.
+
+**How it works:**
+- `Start Test Video Recording` is called in every `Test Setup` — starts `adb screenrecord` on the device.
+- `Stop And Save Test Video` is called first in every `Test Teardown` — stops recording, decodes the video, saves it to the output directory, and embeds it inline in `log.html`.
+- Video files are named after the test: `TC001_-_Verify_Login_Page.mp4`, etc.
+
+**After a run:**
+```
+results/smoke_android/
+├── TC001_-_Verify_Login_Page_Is_Displayed.mp4
+├── TC002_-_Login_With_Valid_Credentials_Should_Navigate_To_Home.mp4
+├── TC003_-_Login_With_Invalid_Password_Should_Show_Error_Message.mp4
+├── ...
+├── log.html        ← videos embedded here (click test → expand teardown → play)
+└── report.html
+```
+
+**To watch a video** — open `log.html`, expand any test, and play the embedded `<video>` player in the teardown step. Or open the `.mp4` file directly.
+
+**Video settings** (defined in `Start Test Video Recording` in `resources/keywords/appium_keywords.robot`):
+
+| Setting | Android | iOS |
+|---------|---------|-----|
+| Resolution | 1280 × 720 | device native |
+| Bit rate | 4 Mbps | — |
+| Max duration | 3 min (180 s) | 3 min (180 s) |
+| Format | MP4 (H.264) | MP4 |
+| Embedded in log | Yes | No |
+
+---
+
 ## Table of Contents
 
 1. [Android Emulator — macOS](#1-android-emulator--macos)
@@ -38,33 +98,38 @@ ls -lh apps/android/mda-2.2.0-25.apk
 
 ### Step 2 — Start the Android Emulator
 
-You need an AVD named `Pixel_6_API_33` (created in `SETUP_GUIDE.md` § 3). If you already have a different AVD, substitute its name.
+The project targets the **Google Play x86_64** AVD running Android 16 (API 36). If you have a different AVD, substitute its name — then update `platformVersion` in `config/android_capabilities.yaml` to match.
 
 ```bash
-# List available AVDs
+# List your AVDs to find the right name
 emulator -list-avds
-# Example output:
+# Example output (name depends on how it was created in Android Studio):
+# sdk_gphone64_x86_64
 # Pixel_6_API_33
 
-# Launch the emulator (background process)
-emulator -avd Pixel_6_API_33 &
+# Launch your AVD in the background
+emulator -avd sdk_gphone64_x86_64 &
+# Or from Android Studio: Device Manager → click ▶ Play
 
-# Wait for it to be fully booted (~60 seconds)
+# Wait until fully booted (~60 s)
 adb wait-for-device
-adb shell getprop sys.boot_completed
-# Expected: 1  (means fully booted)
-```
+adb shell getprop sys.boot_completed   # Expected: 1
 
-Verify the device is connected:
-
-```bash
+# Confirm the serial
 adb devices
-# Expected output:
+# Expected:
 # List of devices attached
 # emulator-5554   device
 ```
 
-> **Tip:** The emulator serial (`emulator-5554`) must match `deviceName` in `config/android_capabilities.yaml`.
+Verify the Android version matches your capabilities file:
+
+```bash
+adb shell getprop ro.build.version.release   # → 16
+adb shell getprop ro.build.version.sdk       # → 36
+```
+
+> **Tip:** The serial (`emulator-5554`) must match `deviceName` in `config/android_capabilities.yaml`. If you run multiple emulators, serials increment: `emulator-5554`, `emulator-5556`, etc.
 
 ### Step 3 — Install the APK on the Emulator
 
@@ -80,13 +145,13 @@ adb shell pm list packages | grep saucelabs
 
 ### Step 4 — Configure Android Capabilities
 
-Edit `config/android_capabilities.yaml` to match your emulator:
+`config/android_capabilities.yaml` is already set for the current emulator. The key fields are:
 
 ```yaml
 capabilities:
   platformName: Android
-  platformVersion: "13"            # Android API 33 → version 13
-  deviceName: "emulator-5554"      # must match `adb devices` output
+  platformVersion: "16"            # Android 16 (Baklava) — API level 36
+  deviceName: "emulator-5554"      # serial from: adb devices
 
   appPackage: "com.saucelabs.mydemoapp.android"
   appActivity: "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
@@ -95,12 +160,21 @@ capabilities:
   noReset: false
   fullReset: false
   newCommandTimeout: 300
-  disableWindowAnimation: true
+  disableWindowAnimation: true     # disables animations for faster, stable tests
   uiautomator2ServerLaunchTimeout: 60000
   uiautomator2ServerInstallTimeout: 60000
 ```
 
-> **Using a real device?** Replace `deviceName` with your device serial from `adb devices -l`.
+**To adapt to a different device**, change:
+
+| Field | How to find the value |
+|-------|-----------------------|
+| `platformVersion` | `adb shell getprop ro.build.version.release` |
+| `deviceName` | `adb devices` (copy the serial, e.g. `emulator-5554` or `R3CN90BXXXX`) |
+| `appPackage` | `adb shell dumpsys window \| grep -E 'mCurrentFocus\|mFocusedApp'` (while app is open) |
+| `appActivity` | same command as above |
+
+> **Real device:** Replace `deviceName` with the USB serial from `adb devices -l`. Everything else stays the same.
 
 ### Step 5 — Start Appium
 
@@ -188,32 +262,37 @@ Invoke-WebRequest `
 
 ### Step 2 — Start the Android Emulator
 
-Open **Android Studio → Device Manager** and click the **Play ▶** button next to your AVD.
-
-Or from the command line:
+Open **Android Studio → Device Manager** and click the **Play ▶** button next to your AVD. Or from the command line:
 
 **Command Prompt:**
 ```cmd
-:: List AVDs
+:: List available AVDs
 emulator -list-avds
 
-:: Launch (in a separate window)
-start "" emulator -avd Pixel_6_API_33
+:: Launch (substitute your AVD name)
+start "" emulator -avd sdk_gphone64_x86_64
 
 :: Wait for full boot, then check
 adb wait-for-device
 adb shell getprop sys.boot_completed
 :: Expected: 1
+
+:: Confirm serial
+adb devices
+:: Expected: emulator-5554   device
 ```
 
 **PowerShell:**
 ```powershell
 # Launch emulator in background
-Start-Process emulator -ArgumentList "-avd", "Pixel_6_API_33"
+Start-Process emulator -ArgumentList "-avd", "sdk_gphone64_x86_64"
 
 # Check connectivity (~60 sec after launch)
 adb devices
 # Expected: emulator-5554   device
+
+# Verify Android version
+adb shell getprop ro.build.version.release   # → 16
 ```
 
 ### Step 3 — Install the APK
@@ -556,37 +635,51 @@ ${USERNAME_FIELD}     accessibility_id=username input field
 
 ## Quick Reference — Full Run Sequence
 
-### Android (macOS)
+### Android (macOS) — current emulator: Android 16 / API 36
+
 ```bash
 # Terminal 1 — emulator (leave running)
-emulator -avd Pixel_6_API_33 &
+emulator -avd sdk_gphone64_x86_64 &
+adb wait-for-device && adb shell getprop sys.boot_completed   # wait for: 1
 
-# Terminal 2 — Appium (leave running)
+# Terminal 2 — Appium 2.19.0 (leave running)
 appium
 
-# Terminal 3 — tests
+# Terminal 3 — tests (videos saved to results/smoke_android/*.mp4)
 source .venv/bin/activate
-adb install -r apps/android/mda-2.2.0-25.apk
-python -m robot --variable PLATFORM:android --include smoke --outputdir results/smoke_android tests/
-open results/smoke_android/report.html
+adb install -r apps/android/mda-2.2.0-25.apk   # skip if already installed
+python -m robot \
+  --variable PLATFORM:android \
+  --include smoke \
+  --outputdir results/smoke_android \
+  tests/
+open results/smoke_android/report.html   # videos are embedded inside log.html
 ```
 
-### Android (Windows — PowerShell)
+### Android (Windows — PowerShell) — current emulator: Android 16 / API 36
+
 ```powershell
 # Window 1 — emulator
-Start-Process emulator -ArgumentList "-avd", "Pixel_6_API_33"
+Start-Process emulator -ArgumentList "-avd", "sdk_gphone64_x86_64"
+Start-Sleep 60
+adb devices   # Expected: emulator-5554   device
 
 # Window 2 — Appium
 appium
 
-# Window 3 — tests
+# Window 3 — tests (videos saved to results\smoke_android\*.mp4)
 .venv\Scripts\Activate.ps1
-adb install -r apps\android\mda-2.2.0-25.apk
-robot --variable PLATFORM:android --include smoke --outputdir results\smoke_android tests\
+adb install -r apps\android\mda-2.2.0-25.apk   # skip if already installed
+robot `
+  --variable PLATFORM:android `
+  --include smoke `
+  --outputdir results\smoke_android `
+  tests\
 Start-Process results\smoke_android\report.html
 ```
 
 ### iOS (macOS)
+
 ```bash
 # Boot simulator
 xcrun simctl boot "iPhone 15 Pro"
@@ -601,9 +694,13 @@ xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.app
 # Terminal 2 — Appium (leave running)
 appium
 
-# Terminal 3 — tests
+# Terminal 3 — tests (videos embedded in log.html on iOS also)
 source .venv/bin/activate
-python -m robot --variable PLATFORM:ios --include smoke --outputdir results/smoke_ios tests/
+python -m robot \
+  --variable PLATFORM:ios \
+  --include smoke \
+  --outputdir results/smoke_ios \
+  tests/
 open results/smoke_ios/report.html
 ```
 

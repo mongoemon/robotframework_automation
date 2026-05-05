@@ -369,9 +369,11 @@ Full step-by-step instructions are in **[docs/RUNNING_ON_DEVICE.md](docs/RUNNING
 
 ### Android Emulator (macOS or Windows)
 
+Current emulator: **Android 16 (API 36)**, serial `emulator-5554`, AVD `sdk_gphone64_x86_64`.
+
 ```bash
 # 1. Boot emulator and wait for it to be ready
-emulator -avd Pixel_6_API_33 &
+emulator -avd sdk_gphone64_x86_64 &
 adb wait-for-device && adb shell getprop sys.boot_completed  # wait for: 1
 
 # 2. Install the app (download once to apps/android/ first)
@@ -380,7 +382,7 @@ adb install -r apps/android/mda-2.2.0-25.apk
 # 3. Start Appium (separate terminal)
 appium
 
-# 4. Run smoke tests
+# 4. Run smoke tests — videos are saved automatically per test
 python -m robot \
   --variable PLATFORM:android \
   --include smoke \
@@ -388,7 +390,9 @@ python -m robot \
   tests/
 ```
 
-Configuration: `config/android_capabilities.yaml` — set `deviceName` to match `adb devices` output.
+After the run: open `results/smoke_android/log.html` — each test has an embedded video player in its teardown step.
+
+Configuration: `config/android_capabilities.yaml` — change `deviceName` and `platformVersion` if your emulator differs.
 
 ### iOS Simulator (macOS only)
 

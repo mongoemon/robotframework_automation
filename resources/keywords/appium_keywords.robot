@@ -217,3 +217,39 @@ Swipe Until Element Is Visible
     END
     Element Should Be Visible    ${locator}
     ...    msg=Element '${locator}' not found after ${max_swipes} swipes in direction '${direction}'.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Screen Recording
+# ─────────────────────────────────────────────────────────────────────────────
+
+Start Test Video Recording
+    [Documentation]    Starts a screen recording for the current test.
+    ...                Android: records at 1280x720 resolution, 4 Mbps, up to 3 minutes.
+    ...                iOS: uses default quality settings.
+    ...
+    ...                Errors are silently ignored so a recording failure never blocks a test.
+    ...                Call this at the start of Test Setup.
+    ...
+    ...                Example:
+    ...                    Test Setup    Run Keywords    Start Test Video Recording    AND    Take Screenshot With Timestamp
+    ${platform}=    Get Current Platform
+    Run Keyword And Ignore Error
+    ...    Run Keyword If    '${platform}' == 'android'
+    ...    Start Screen Recording    timeLimit=180s    videoSize=1280x720    bitRate=4000000
+    ...    ELSE
+    ...    Start Screen Recording    timeLimit=180s
+
+Stop And Save Test Video
+    [Documentation]    Stops the active screen recording and saves the video to the output
+    ...                directory. The filename is the test name with non-alphanumeric
+    ...                characters replaced by underscores (e.g. "TC001_Login" → TC001_Login.mp4).
+    ...
+    ...                On Android, the video is also embedded inline in log.html.
+    ...                Errors are silently ignored so a save failure never masks a test result.
+    ...
+    ...                Call this at the start of Test Teardown so the full test is captured.
+    ...
+    ...                Example:
+    ...                    Test Teardown    Run Keywords    Stop And Save Test Video    AND    Take Screenshot With Timestamp
+    ${safe_name}=    Evaluate    re.sub(r'[^a-zA-Z0-9_-]', '_', '${TEST NAME}')    modules=re
+    Run Keyword And Ignore Error    Stop Screen Recording    filename=${safe_name}

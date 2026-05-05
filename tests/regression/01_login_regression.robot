@@ -42,13 +42,15 @@ Suite Teardown    Close Mobile Application
 
 # ── Test-level setup / teardown ───────────────────────────────────────────────
 Test Setup        Run Keywords
-...               Log Device Information
+...               Start Test Video Recording
+...               AND    Log Device Information
 ...               AND    Take Screenshot With Timestamp
 
 Test Teardown     Run Keywords
-...               Take Screenshot With Timestamp
+...               Stop And Save Test Video
+...               AND    Take Screenshot With Timestamp
 ...               AND    Run Keyword If Test Failed
-...                   Log    TEST FAILED — see screenshot above.    level=WARN
+...                   Log    TEST FAILED — video and screenshot saved above.    level=WARN
 ...               AND    Return To Login Screen
 
 # ── Default tags ──────────────────────────────────────────────────────────────
