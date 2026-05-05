@@ -175,13 +175,21 @@ Return To Products Screen Unauthenticated
     ...    Wait Until Element Is Visible    ${LOGOUT_MENU_ITEM}    timeout=5s
     Run Keyword If    ${authenticated}    Tap Logout Menu Item
     Run Keyword If    ${authenticated}    Confirm Logout
+    # After Confirm Logout the app navigates to the Login screen (not Products).
+    # Restart immediately rather than waiting ${TIMEOUT} for Products that will never appear.
+    Run Keyword If    ${authenticated}    Terminate Application    ${_app_id}
+    Run Keyword If    ${authenticated}    Sleep    1s    reason=Allow process to fully terminate before relaunch
+    Run Keyword If    ${authenticated}    Activate Application    ${_app_id}
     # Close the drawer when unauthenticated. Use ignore-error so a missed tap does not
     # silently exit the app — the Products check below catches that case.
     Run Keyword If    not ${authenticated}    Run Keyword And Ignore Error    Navigate Back
-    # Guard: if Navigate Back somehow exited the app, restart it to Products.
+    # Wait for Products to reappear (after app restart or drawer close).
     ${still_on_products}=    Run Keyword And Return Status
-    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=5s
+    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=${TIMEOUT}
+    # Recovery: if Products is still not visible, terminate and relaunch once more.
     Run Keyword If    not ${still_on_products}    Terminate Application    ${_app_id}
     Run Keyword If    not ${still_on_products}    Sleep    1s
     Run Keyword If    not ${still_on_products}    Activate Application    ${_app_id}
+    Run Keyword If    not ${still_on_products}
+    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=${TIMEOUT}
     Log    Teardown complete: Products screen, unauthenticated.    level=INFO

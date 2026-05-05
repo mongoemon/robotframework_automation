@@ -166,8 +166,8 @@ TC-AND-005 / TC-IOS-005 - Logout Returns Login Option To Menu
     Verify Logout Menu Item Is Visible
     Tap Logout Menu Item
     Confirm Logout
-    Verify Products Screen Is Loaded
-    # Steps 7-8: Verify Login item is back in the menu
+    Verify Login Page Is Loaded
+    # Steps 7-8: Verify Login item is in the menu (nav drawer accessible from Login screen)
     Open Navigation Menu
     Verify Login Menu Item Is Visible
     Close Navigation Menu
