@@ -62,14 +62,9 @@ Reset Application State
     ...
     ...                Use in Test Setup when noReset=true but you still want a clean state.
     ${platform}=    Get Current Platform
-    Run Keyword If    '${platform}' == 'android'
-    ...    Run Keywords
-    ...        Background App    3
-    ...    AND Launch Application
-    ...    ELSE IF    '${platform}' == 'ios'
-    ...    Run Keywords
-    ...        Background App    3
-    ...    AND Launch Application
+    Run Keyword If    '${platform}' == 'android'    Background Application    3
+    Run Keyword If    '${platform}' == 'ios'    Background Application    3
+    Launch Application
 
 Launch Application
     [Documentation]    Activates (brings to foreground) the app under test.
@@ -103,20 +98,22 @@ Accept Alert If Present
     ...
     ...                Example:
     ...                    Accept Alert If Present    # call after triggering an action that may show a permission
-    ${alert_visible}=    Run Keyword And Return Status    Alert Should Be Present
-    Run Keyword If    ${alert_visible}
-    ...    Run Keywords
-    ...        Log    System alert detected — accepting it.    level=INFO
-    ...    AND Accept Alert
+    ${ok_visible}=    Run Keyword And Return Status
+    ...    Element Should Be Visible    ${ALERT_OK_BUTTON}
+    Return From Keyword If    not ${ok_visible}
+    Log    System alert detected — accepting it.    level=INFO
+    Click Element    ${ALERT_OK_BUTTON}
 
 Dismiss Alert If Present
     [Documentation]    Dismisses (taps Cancel / Deny) a native system alert if one appears.
     ...                Safe to call when no alert is present.
-    ${alert_visible}=    Run Keyword And Return Status    Alert Should Be Present
-    Run Keyword If    ${alert_visible}
-    ...    Run Keywords
-    ...        Log    System alert detected — dismissing it.    level=INFO
-    ...    AND Dismiss Alert
+    ...                On Android presses Back to dismiss; on iOS presses the Allow button inverse.
+    ${allow_visible}=    Run Keyword And Return Status
+    ...    Element Should Be Visible    ${ALERT_ALLOW_BUTTON}
+    Return From Keyword If    not ${allow_visible}
+    Log    System alert detected — dismissing it.    level=INFO
+    ${platform}=    Get Current Platform
+    Run Keyword If    '${platform}' == 'android'    Press Keycode    4
 
 Handle iOS Permission Dialog
     [Documentation]    Handles the iOS "Allow / Don't Allow" permission dialogs that appear

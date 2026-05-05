@@ -73,11 +73,9 @@ Verify Page Is Displayed
     [Arguments]    ${page_indicator}    ${page_name}
     ${status}=    Run Keyword And Return Status
     ...    Wait Until Element Is Visible    ${page_indicator}    timeout=${TIMEOUT}
-    Run Keyword If    not ${status}
-    ...    Run Keywords
-    ...        Take Screenshot With Timestamp
-    ...    AND Fail    Expected to be on ${page_name} but the page indicator element was not found.
-    ...                Locator: '${page_indicator}'. Check your locators or app state.
+    Run Keyword If    not ${status}    Take Screenshot With Timestamp
+    Should Be True    ${status}
+    ...    Expected to be on ${page_name} but the page indicator element was not found. Locator: '${page_indicator}'. Check your locators or app state.
     Log    Confirmed: ${page_name} is displayed.    level=INFO
 
 # ─────────────────────────────────────────────────────────────────────────────

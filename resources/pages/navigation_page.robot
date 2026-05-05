@@ -167,9 +167,7 @@ Return To Products Screen Unauthenticated
     Open Navigation Menu
     ${authenticated}=    Run Keyword And Return Status
     ...    Element Should Be Visible    ${LOGOUT_MENU_ITEM}
-    Run Keyword If    ${authenticated}
-    ...    Run Keywords
-    ...        Tap Logout Menu Item
-    ...    AND Confirm Logout
-    ...    ELSE    Navigate Back
+    Run Keyword If    ${authenticated}    Tap Logout Menu Item
+    Run Keyword If    ${authenticated}    Confirm Logout
+    Run Keyword If    not ${authenticated}    Navigate Back
     Log    Teardown complete: Products screen, unauthenticated.    level=INFO

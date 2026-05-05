@@ -128,7 +128,6 @@ Return To Login Screen In Smoke
     ${on_login}=    Run Keyword And Return Status
     ...    Element Should Be Visible    ${LOGIN_PAGE_INDICATOR}
     Return From Keyword If    ${on_login}
-    Run Keyword And Ignore Error    Navigate Back
     Open Navigation Menu
     ${authenticated}=    Run Keyword And Return Status
     ...    Element Should Be Visible    ${LOGOUT_MENU_ITEM}
