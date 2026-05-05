@@ -160,6 +160,7 @@ Return To Products Screen Unauthenticated
     ...    Wait Until Element Is Visible    ${LOGIN_PAGE_INDICATOR}    timeout=5s
     ${_app_id}=    Set Variable If    '${PLATFORM}' == 'ios'    ${IOS_APP_ID}    ${ANDROID_APP_ID}
     Run Keyword If    ${on_login}    Terminate Application    ${_app_id}
+    Run Keyword If    ${on_login}    Sleep    1s    reason=Allow process to fully terminate before relaunch
     Run Keyword If    ${on_login}    Activate Application    ${_app_id}
     # Wait to land on Products screen.
     ${on_products}=    Run Keyword And Return Status
@@ -169,9 +170,18 @@ Return To Products Screen Unauthenticated
     Return From Keyword If    not ${on_products}
     # Open the menu to check authentication state.
     Open Navigation Menu
+    Sleep    0.5s    reason=Allow navigation drawer animation to settle before querying items
     ${authenticated}=    Run Keyword And Return Status
-    ...    Wait Until Element Is Visible    ${LOGOUT_MENU_ITEM}    timeout=3s
+    ...    Wait Until Element Is Visible    ${LOGOUT_MENU_ITEM}    timeout=5s
     Run Keyword If    ${authenticated}    Tap Logout Menu Item
     Run Keyword If    ${authenticated}    Confirm Logout
-    Run Keyword If    not ${authenticated}    Navigate Back
+    # Close the drawer when unauthenticated. Use ignore-error so a missed tap does not
+    # silently exit the app — the Products check below catches that case.
+    Run Keyword If    not ${authenticated}    Run Keyword And Ignore Error    Navigate Back
+    # Guard: if Navigate Back somehow exited the app, restart it to Products.
+    ${still_on_products}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${PRODUCTS_SCREEN_INDICATOR}    timeout=5s
+    Run Keyword If    not ${still_on_products}    Terminate Application    ${_app_id}
+    Run Keyword If    not ${still_on_products}    Sleep    1s
+    Run Keyword If    not ${still_on_products}    Activate Application    ${_app_id}
     Log    Teardown complete: Products screen, unauthenticated.    level=INFO
