@@ -75,39 +75,46 @@ ${SCREENSHOT_DIR}       ${EXECDIR}/results/screenshots
 # ─────────────────────────────────────────────────────────────────────────────
 
 # --- Login Screen ---
-# The page-level identifier used to confirm we are on the login screen.
-${LOGIN_PAGE_INDICATOR}         accessibility_id=Login Screen
+# Confirmed via UIAutomator dump against SauceLabs My Demo App v2.2.0
 
-# Input field for the user's email / username
-${USERNAME_FIELD}               accessibility_id=Username Input
+# Page-level identifier — the "Login" title TextView at the top of the login screen
+${LOGIN_PAGE_INDICATOR}         id=com.saucelabs.mydemoapp.android:id/loginTV
 
-# Input field for the user's password
-${PASSWORD_FIELD}               accessibility_id=Password Input
+# Username / email input field (no content-desc; identified by resource-id)
+${USERNAME_FIELD}               id=com.saucelabs.mydemoapp.android:id/nameET
 
-# The main "Log In" / "Sign In" button
-${LOGIN_BUTTON}                 accessibility_id=Login Button
+# Password input field
+${PASSWORD_FIELD}               id=com.saucelabs.mydemoapp.android:id/passwordET
 
-# Error message shown when credentials are invalid
-${LOGIN_ERROR_MESSAGE}          accessibility_id=Login Error Message
+# The main Login button
+${LOGIN_BUTTON}                 accessibility_id=Tap to login with given credentials
 
-# "Forgot password?" link (used in regression tests)
+# Error message element for invalid / rejected credentials (app-level error)
+# NOTE: SauceLabs Demo App v2.2.0 accepts any credentials and does not display
+# a credential-level error via the UI hierarchy. Field-level errors use
+# ${USERNAME_ERROR_MESSAGE} and ${PASSWORD_ERROR_MESSAGE} below.
+${LOGIN_ERROR_MESSAGE}          id=com.saucelabs.mydemoapp.android:id/errorTV
+
+# "Forgot password?" link (not present in SauceLabs Demo App v2.2.0)
 ${FORGOT_PASSWORD_LINK}         accessibility_id=Forgot Password Link
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Home Page — Element Locators
+# NOTE: The SauceLabs Demo App returns to the Products screen after login.
+# There is no separate "Home" screen. Both indicators point to the same element.
 # ─────────────────────────────────────────────────────────────────────────────
 
-# The page-level identifier used to confirm we landed on the home screen.
-${HOME_PAGE_INDICATOR}          accessibility_id=Home Screen
+# After login the app stays on the Products catalog screen
+${HOME_PAGE_INDICATOR}          accessibility_id=Displays all products of catalog
 
-# Welcome banner or greeting message shown after login
+# Welcome banner — not present in SauceLabs Demo App v2.2.0
 ${WELCOME_MESSAGE}              accessibility_id=Welcome Message
 
-# Hamburger / navigation menu button
-${MENU_BUTTON}                  accessibility_id=Menu Button
+# Hamburger / navigation menu button (top-left toolbar icon)
+${MENU_BUTTON}                  accessibility_id=View menu
 
-# Logout option inside the navigation menu
-${LOGOUT_BUTTON}                accessibility_id=Logout Button
+# Logout button — in SauceLabs Demo App logout is via nav drawer (use ${LOGOUT_MENU_ITEM})
+${LOGOUT_BUTTON}                accessibility_id=Logout Menu Item
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Common UI Elements
@@ -124,39 +131,43 @@ ${BACK_BUTTON}                  accessibility_id=Navigate up
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Navigation Drawer — Element Locators
+# Confirmed via UIAutomator dump (content-desc values from the live app)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Hamburger / navigation drawer toggle (☰) button
-${HAMBURGER_MENU}               accessibility_id=open menu
+# Hamburger / navigation drawer toggle (☰) button — top-left toolbar
+${HAMBURGER_MENU}               accessibility_id=View menu
 
-# "Log In" item inside the navigation drawer — visible when not authenticated
-${LOGIN_MENU_ITEM}              accessibility_id=menu item log in
+# "Log In" item inside the navigation drawer — visible when NOT authenticated
+${LOGIN_MENU_ITEM}              accessibility_id=Login Menu Item
 
 # "Log Out" item inside the navigation drawer — visible when authenticated
-${LOGOUT_MENU_ITEM}             accessibility_id=menu item log out
+${LOGOUT_MENU_ITEM}             accessibility_id=Logout Menu Item
 
-# "LOGOUT" confirm button inside the logout confirmation dialog
-${LOGOUT_CONFIRM_BUTTON}        accessibility_id=Logout Confirm Button
+# "LOGOUT" confirm button in the AlertDialog that appears after tapping Log Out
+# Uses the standard Android system resource-id for the positive button
+${LOGOUT_CONFIRM_BUTTON}        id=android:id/button1
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Products Catalog Screen — Element Locators
+# Confirmed via UIAutomator dump
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Page-level identifier to confirm the Products catalog screen is displayed
-${PRODUCTS_SCREEN_INDICATOR}    accessibility_id=Products Screen
+# Page-level identifier — the RecyclerView that contains all product items
+${PRODUCTS_SCREEN_INDICATOR}    accessibility_id=Displays all products of catalog
 
-# Individual product card / list item in the catalog
-${PRODUCT_ITEM}                 accessibility_id=Product Item
+# Individual product card (used for counting: each product has one title element)
+${PRODUCT_ITEM}                 accessibility_id=Product Title
 
 # Product title text inside a product card
 ${PRODUCT_TITLE}                accessibility_id=Product Title
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Field-Level Validation Error Messages
+# Confirmed: appears when the login form is submitted with empty fields
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Error label shown below the username field when submitted empty
-${USERNAME_ERROR_MESSAGE}       accessibility_id=Username Error Message
+# Error label below the username field when submitted empty ("Username is required")
+${USERNAME_ERROR_MESSAGE}       id=com.saucelabs.mydemoapp.android:id/nameErrorTV
 
-# Error label shown below the password field when submitted empty
-${PASSWORD_ERROR_MESSAGE}       accessibility_id=Password Error Message
+# Error label below the password field when submitted with username only ("Enter Password")
+${PASSWORD_ERROR_MESSAGE}       id=com.saucelabs.mydemoapp.android:id/passwordErrorTV

@@ -70,6 +70,7 @@ Verify Products List Is Not Empty
     ...
     ...                Example:
     ...                    Verify Products List Is Not Empty
+    Wait Until Element Is Visible    ${PRODUCT_TITLE}    timeout=${TIMEOUT}
     ${count}=    Get Product Count
     Should Be True    ${count} > 0
     ...    msg=Products list is empty. Expected at least 1 product item. Count: ${count}

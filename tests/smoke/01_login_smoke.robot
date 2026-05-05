@@ -32,30 +32,35 @@ Resource         ../../resources/keywords/common_keywords.robot
 Resource         ../../resources/keywords/appium_keywords.robot
 Resource         ../../resources/pages/login_page.robot
 Resource         ../../resources/pages/home_page.robot
+Resource         ../../resources/pages/navigation_page.robot
+Resource         ../../resources/pages/products_page.robot
 
 # ── Suite-level setup / teardown ──────────────────────────────────────────────
-Suite Setup       Open Mobile Application
+# App launches to Products screen — navigate to Login via hamburger menu.
+Suite Setup       Run Keywords    Open Mobile Application    AND    Navigate To Login Via Menu
 Suite Teardown    Close Mobile Application
 
 # ── Test-level setup / teardown ───────────────────────────────────────────────
 # Video recording wraps each test; screenshot is taken as a still precondition/result frame.
 # Videos are saved to the output directory as <TestName>.mp4 and embedded in log.html.
+# Each teardown returns to the Login screen so the next test always starts there.
 Test Setup        Run Keywords    Start Test Video Recording    AND    Take Screenshot With Timestamp
 Test Teardown     Run Keywords
 ...               Stop And Save Test Video
 ...               AND    Take Screenshot With Timestamp
 ...               AND    Run Keyword If Test Failed    Log    TEST FAILED — video and screenshot saved above.    level=WARN
+...               AND    Return To Login Screen In Smoke
 
 # ── Default tags applied to every test in this file ───────────────────────────
 Test Tags         smoke    login
 
 
 *** Variables ***
-# Inline test data — matches structure in test_data/users.yaml
-${VALID_USERNAME}       testuser@example.com
-${VALID_PASSWORD}       ValidPass123!
-${INVALID_PASSWORD}     wrongpassword99
-${EXPECTED_ERROR}       Invalid credentials. Please try again.
+# SauceLabs My Demo App v2.2.0 credentials (pre-filled on the login screen)
+${VALID_USERNAME}       bod@example.com
+${VALID_PASSWORD}       10203040
+${LOCKED_USERNAME}      alice@example.com
+${LOCKED_PASSWORD}      10203040
 
 
 *** Test Cases ***
@@ -76,39 +81,58 @@ TC001 - Verify Login Page Is Displayed
     Verify Login Button Is Displayed
     Log    TC001 PASSED: Login page is displayed correctly.    level=INFO
 
-TC002 - Login With Valid Credentials Should Navigate To Home
+TC002 - Login With Valid Credentials Should Navigate To Products Screen
     [Documentation]    Performs a full login with valid credentials and verifies the
-    ...                user is redirected to the Home screen.
+    ...                user lands on the Products catalog screen.
+    ...
+    ...                NOTE: SauceLabs Demo App v2.2.0 returns to the Products screen
+    ...                after login (there is no separate Home screen).
     ...
     ...                PASS CRITERIA:
     ...                    - Username and password accepted without error
-    ...                    - Home screen is displayed after tapping Login
-    ...                    - Welcome message is visible on the Home screen
+    ...                    - Products catalog screen is displayed after tapping Login
     ...
     ...                FAILURE INVESTIGATION:
-    ...                    1. Confirm valid credentials match what is in your test environment
-    ...                    2. Check if the error message element appeared (screenshot)
-    ...                    3. Verify ${HOME_PAGE_INDICATOR} locator is correct
+    ...                    1. Confirm credentials match the app (bod@example.com / 10203040)
+    ...                    2. Verify ${PRODUCTS_SCREEN_INDICATOR} locator is correct
     [Tags]    TC002    smoke    login    happy-path
     Login As    ${VALID_USERNAME}    ${VALID_PASSWORD}
-    Verify Home Page Is Loaded
-    Verify Home Page Elements Are Present
-    Log    TC002 PASSED: Successful login navigated to Home page.    level=INFO
+    Verify Products Screen Is Loaded
+    Log    TC002 PASSED: Successful login shows the Products screen.    level=INFO
 
-TC003 - Login With Invalid Password Should Show Error Message
-    [Documentation]    Attempts login with a correct username but wrong password,
-    ...                and verifies that an appropriate error message is shown.
+TC003 - Empty Login Form Shows Field Validation Errors
+    [Documentation]    Submits the login form with both fields empty and verifies
+    ...                that the username field shows a required-field error.
+    ...
+    ...                NOTE: SauceLabs Demo App v2.2.0 accepts any non-empty credentials
+    ...                without server-side validation. Field-level errors appear only
+    ...                when fields are left empty.
     ...
     ...                PASS CRITERIA:
-    ...                    - User remains on the Login screen (no navigation to Home)
-    ...                    - Error message element appears with the expected text
+    ...                    - Tapping Login with empty fields shows the username error
+    ...                    - User remains on the Login screen
     ...
     ...                FAILURE INVESTIGATION:
-    ...                    1. Check if the app navigated away (it should NOT)
-    ...                    2. Check if the error message has a different locator or text
-    ...                    3. Verify ${LOGIN_ERROR_MESSAGE} locator in common_variables.robot
-    [Tags]    TC003    smoke    login    error-handling
-    Login As    ${VALID_USERNAME}    ${INVALID_PASSWORD}
-    Verify Error Message Is    ${EXPECTED_ERROR}
+    ...                    1. Verify ${USERNAME_ERROR_MESSAGE} locator is correct
+    [Tags]    TC003    smoke    login    validation
+    Tap Login Button
+    Wait Until Element Is Visible    ${USERNAME_ERROR_MESSAGE}    timeout=${TIMEOUT}
     Verify Login Page Is Loaded
-    Log    TC003 PASSED: Invalid password shows correct error message.    level=INFO
+    Log    TC003 PASSED: Empty form shows field validation error.    level=INFO
+
+
+*** Keywords ***
+Return To Login Screen In Smoke
+    [Documentation]    Teardown helper — returns the app to the Login screen between tests.
+    ...                Handles three states: already on Login, on Products authenticated, on Products unauthenticated.
+    ${on_login}=    Run Keyword And Return Status
+    ...    Element Should Be Visible    ${LOGIN_PAGE_INDICATOR}
+    Return From Keyword If    ${on_login}
+    Run Keyword And Ignore Error    Navigate Back
+    Open Navigation Menu
+    ${authenticated}=    Run Keyword And Return Status
+    ...    Element Should Be Visible    ${LOGOUT_MENU_ITEM}
+    Run Keyword If    ${authenticated}    Tap Logout Menu Item
+    Run Keyword If    ${authenticated}    Confirm Logout
+    Run Keyword If    not ${authenticated}    Close Navigation Menu
+    Navigate To Login Via Menu
