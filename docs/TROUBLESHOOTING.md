@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-This guide covers the 10 most common problems when running Robot Framework + Appium mobile tests, with exact diagnostic commands and fixes for **both macOS and Windows**.
+This guide covers the most common problems when running Robot Framework + Appium mobile tests, with exact diagnostic commands and fixes for **both macOS and Windows**.
 
 ---
 
@@ -34,7 +34,39 @@ adb devices
 
 ---
 
-## Issue 1 — Appium is Not Starting
+## Issue 1 — SSL Certificate Error When Downloading Apps (macOS)
+
+### Symptoms
+- Running `python3 scripts/download_apps.py` fails with:
+  ```
+  [FAIL] [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate
+  ```
+
+### Cause
+macOS Python does not use the system certificate store by default.
+
+### Fix
+
+Install `certifi` and prefix the command with `SSL_CERT_FILE`:
+
+```bash
+pip install certifi
+
+SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())") \
+  python3 scripts/download_apps.py
+```
+
+To make this permanent, add to your `~/.zshrc`:
+
+```bash
+export SSL_CERT_FILE="$(python3 -c 'import certifi; print(certifi.where())' 2>/dev/null || true)"
+```
+
+Then reload: `source ~/.zshrc`
+
+---
+
+## Issue 2 — Appium is Not Starting
 
 ### Symptoms
 - Running `appium` immediately exits with an error
@@ -94,7 +126,7 @@ appium driver install xcuitest    # macOS only
 
 ---
 
-## Issue 2 — No Devices Found (Android)
+## Issue 3 — No Devices Found (Android)
 
 ### Symptoms
 - `adb devices` shows nothing, or `offline`
@@ -164,7 +196,7 @@ adb devices
 
 ---
 
-## Issue 3 — App Not Found / Wrong Package Name
+## Issue 4 — App Not Found / Wrong Package Name
 
 ### Symptoms
 - `org.openqa.selenium.SessionNotCreatedException: Could not launch app... Activity not found`
@@ -209,7 +241,7 @@ app: "C:/Users/YOUR_NAME/work/robotframework_automation/app/android/myapp.apk"
 
 ---
 
-## Issue 4 — Element Not Found
+## Issue 5 — Element Not Found
 
 ### Symptoms
 - `ElementNotVisibleException: An element could not be located on the page`
@@ -259,7 +291,7 @@ Wait And Click Element    ${YOUR_ELEMENT_LOCATOR}
 
 ---
 
-## Issue 5 — Session Creation Failed
+## Issue 6 — Session Creation Failed
 
 ### Symptoms
 - `SessionNotCreatedException: Unable to create a new remote session`
@@ -306,7 +338,7 @@ newCommandTimeout: 600    # increase to 10 minutes
 
 ---
 
-## Issue 6 — Tests Time Out on Slow Actions
+## Issue 7 — Tests Time Out on Slow Actions
 
 ### Symptoms
 - Random `TimeoutException` on elements that usually appear quickly
@@ -346,7 +378,7 @@ newCommandTimeout: 600
 
 ---
 
-## Issue 7 — iOS Code Signing / Real Device Issues (macOS only)
+## Issue 8 — iOS Code Signing / Real Device Issues (macOS only)
 
 ### Symptoms
 - `Unable to launch com.example.myapp because it has an invalid code signature`
@@ -379,7 +411,7 @@ deviceName: "iPhone 15 Pro"
 
 ---
 
-## Issue 8 — Wrong Python Version / Import Errors
+## Issue 9 — Wrong Python Version / Import Errors
 
 ### Symptoms
 - `ModuleNotFoundError: No module named 'AppiumLibrary'`
@@ -443,7 +475,7 @@ py -3.11 -m robot --version
 
 ---
 
-## Issue 9 — Missing System Dependencies
+## Issue 10 — Missing System Dependencies
 
 ### Symptoms
 - `appium-doctor` reports WARN or ERROR
@@ -488,7 +520,7 @@ Run `appium-doctor --android` again to confirm all issues are resolved.
 
 ---
 
-## Issue 10 — Port 4723 Already in Use
+## Issue 11 — Port 4723 Already in Use
 
 ### Symptoms
 - `Error: listen EADDRINUSE: address already in use :::4723`
@@ -560,7 +592,7 @@ adb kill-server && adb start-server
 
 ---
 
-## Issue 11 — AppiumLibrary 2.x Keyword Compatibility
+## Issue 12 — AppiumLibrary 2.x Keyword Compatibility
 
 ### Symptoms
 - `No keyword with name 'Get Window Size' found`
@@ -624,7 +656,7 @@ Log    Platform: ${platform}    level=INFO
 
 ---
 
-## Issue 12 — Screen Recording / Video
+## Issue 13 — Screen Recording / Video
 
 ### Symptoms
 

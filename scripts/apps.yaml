@@ -22,14 +22,14 @@ android:
   filename: mda-2.2.0-25.apk
   # Official SauceLabs release — verify the tag at:
   # https://github.com/saucelabs/my-demo-app-android/releases
-  saucelabs_url: "https://github.com/saucelabs/my-demo-app-android/releases/download/v2.2.0/mda-2.2.0-25.apk"
+  saucelabs_url: "https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk"
   # Your private GitHub Release URL (fill in when using private hosting)
   private_url: ""
 
 ios:
-  filename: SauceLabs-Demo-App.ipa
+  filename: SauceLabs-Demo-App.Simulator.zip
   # Official SauceLabs release — verify the tag at:
   # https://github.com/saucelabs/my-demo-app-ios/releases
-  saucelabs_url: "https://github.com/saucelabs/my-demo-app-ios/releases/download/v1.0.0/SauceLabs-Demo-App.ipa"
+  saucelabs_url: "https://github.com/saucelabs/my-demo-app-ios/releases/download/2.2.2/SauceLabs-Demo-App.Simulator.zip"
   # Your private GitHub Release URL (fill in when using private hosting)
   private_url: ""

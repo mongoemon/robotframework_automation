@@ -83,17 +83,24 @@ results/smoke_android/
 The test suite targets the **SauceLabs My Demo App** for Android.
 
 ```bash
-# Create the apps directory if it doesn't exist
-mkdir -p apps/android
-
-# Download the APK (version pinned to match test credentials)
-curl -fsSL \
-  "https://github.com/saucelabs/my-demo-app-android/releases/download/v2.2.0/mda-2.2.0-25.apk" \
-  -o apps/android/mda-2.2.0-25.apk
+# Recommended — uses the pinned URL in scripts/apps.yaml
+SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())") \
+  python3 scripts/download_apps.py --android
 
 # Verify the download
-ls -lh apps/android/mda-2.2.0-25.apk
-# Expected: -rw-r--r-- ... ~4MB ... apps/android/mda-2.2.0-25.apk
+ls -lh app/android/mda-2.2.0-25.apk
+# Expected: -rw-r--r-- ... ~4MB ... app/android/mda-2.2.0-25.apk
+```
+
+> **macOS SSL note:** Python on macOS may fail with `CERTIFICATE_VERIFY_FAILED`. The `SSL_CERT_FILE` prefix above fixes it using `certifi` (installed with `pip install certifi`).
+
+Alternatively, download manually with curl:
+
+```bash
+mkdir -p app/android
+curl -fsSL \
+  "https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk" \
+  -o app/android/mda-2.2.0-25.apk
 ```
 
 ### Step 2 — Start the Android Emulator
@@ -134,7 +141,7 @@ adb shell getprop ro.build.version.sdk       # → 36
 ### Step 3 — Install the APK on the Emulator
 
 ```bash
-adb install -r apps/android/mda-2.2.0-25.apk
+adb install -r app/android/mda-2.2.0-25.apk
 # Expected: Performing Streamed Install
 #           Success
 
@@ -245,19 +252,19 @@ open results/smoke_android/report.html
 
 **Command Prompt:**
 ```cmd
-mkdir apps\android
+mkdir app\android
 
-curl -fsSL "https://github.com/saucelabs/my-demo-app-android/releases/download/v2.2.0/mda-2.2.0-25.apk" ^
-  -o apps\android\mda-2.2.0-25.apk
+curl -fsSL "https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk" ^
+  -o app\android\mda-2.2.0-25.apk
 ```
 
 **PowerShell:**
 ```powershell
-New-Item -ItemType Directory -Force -Path apps\android
+New-Item -ItemType Directory -Force -Path app\android
 
 Invoke-WebRequest `
-  -Uri "https://github.com/saucelabs/my-demo-app-android/releases/download/v2.2.0/mda-2.2.0-25.apk" `
-  -OutFile "apps\android\mda-2.2.0-25.apk"
+  -Uri "https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk" `
+  -OutFile "app\android\mda-2.2.0-25.apk"
 ```
 
 ### Step 2 — Start the Android Emulator
@@ -298,7 +305,7 @@ adb shell getprop ro.build.version.release   # → 16
 ### Step 3 — Install the APK
 
 ```cmd
-adb install -r apps\android\mda-2.2.0-25.apk
+adb install -r app\android\mda-2.2.0-25.apk
 :: Expected: Success
 ```
 
@@ -379,20 +386,26 @@ Invoke-Item results\smoke_android\report.html
 The iOS simulator requires a `.app` bundle (not an `.ipa`). The SauceLabs Demo App ships as a zip containing the `.app`.
 
 ```bash
-mkdir -p apps/ios
-
-# Download the simulator zip
-curl -fsSL \
-  "https://github.com/saucelabs/my-demo-app-ios/releases/download/v1.0.3/SauceLabs-Demo-App.Simulator.zip" \
-  -o apps/ios/app.zip
+# Recommended — uses the pinned URL in scripts/apps.yaml
+SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())") \
+  python3 scripts/download_apps.py --ios
 
 # Extract the .app bundle
-unzip -q apps/ios/app.zip -d apps/ios/
-rm apps/ios/app.zip
+unzip -q app/ios/SauceLabs-Demo-App.Simulator.zip -d app/ios/
 
 # Verify
-ls apps/ios/
-# Expected: SauceLabs-Demo-App.app
+ls app/ios/
+# Expected: SauceLabs-Demo-App.app  SauceLabs-Demo-App.Simulator.zip
+```
+
+Alternatively, download manually with curl:
+
+```bash
+mkdir -p app/ios
+curl -fsSL \
+  "https://github.com/saucelabs/my-demo-app-ios/releases/download/2.2.2/SauceLabs-Demo-App.Simulator.zip" \
+  -o app/ios/SauceLabs-Demo-App.Simulator.zip
+unzip -q app/ios/SauceLabs-Demo-App.Simulator.zip -d app/ios/
 ```
 
 ### Step 2 — Boot an iOS Simulator
@@ -428,7 +441,7 @@ UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0
 echo "Simulator UDID: $UDID"
 
 # Install the .app bundle
-xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.app
+xcrun simctl install "$UDID" app/ios/SauceLabs-Demo-App.app
 echo "App installed"
 
 # Verify
@@ -617,7 +630,7 @@ ${USERNAME_FIELD}     accessibility_id=username input field
 | `UDID doesn't match any device` | Stale UDID in capabilities | Re-run `xcrun simctl list devices \| grep Booted` and copy the current UDID |
 | `WebDriverAgent build failed` | Xcode or signing issue | Run `xcodebuild -version` — ensure Xcode 14+. Try `appium driver run xcuitest build-wda --platform-version 17.2` |
 | `The bundle "WebDriverAgentRunner" could not be installed` | Simulator storage full | Delete old simulators: **Xcode → Window → Devices and Simulators → simulator → Delete Device** |
-| `Application not installed` | `.app` bundle not on simulator | Re-run `xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.app` |
+| `Application not installed` | `.app` bundle not on simulator | Re-run `xcrun simctl install "$UDID" app/ios/SauceLabs-Demo-App.app` |
 | First run takes 5+ minutes | WDA is being compiled | Normal on first run. Cache is reused afterward. |
 | `xcuitest not found` | Driver not installed | `appium driver install xcuitest` |
 
@@ -647,7 +660,7 @@ appium
 
 # Terminal 3 — tests (videos saved to results/smoke_android/*.mp4)
 source .venv/bin/activate
-adb install -r apps/android/mda-2.2.0-25.apk   # skip if already installed
+adb install -r app/android/mda-2.2.0-25.apk   # skip if already installed
 python -m robot \
   --variable PLATFORM:android \
   --include smoke \
@@ -669,7 +682,7 @@ appium
 
 # Window 3 — tests (videos saved to results\smoke_android\*.mp4)
 .venv\Scripts\Activate.ps1
-adb install -r apps\android\mda-2.2.0-25.apk   # skip if already installed
+adb install -r app\android\mda-2.2.0-25.apk   # skip if already installed
 robot `
   --variable PLATFORM:android `
   --include smoke `
@@ -687,7 +700,7 @@ open -a Simulator
 
 # Get UDID and install app
 UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0-9-]{36}')
-xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.app
+xcrun simctl install "$UDID" app/ios/SauceLabs-Demo-App.app
 
 # Update config/ios_capabilities.yaml with the UDID above
 
