@@ -17,9 +17,9 @@ capabilities:
 
   # ── Platform ──────────────────────────────────────────────────────────────
   platformName: Android
-  # Android 16 (Baklava) — API level 36
+  # Android 17 — API level 37
   # Verify with: adb shell getprop ro.build.version.release
-  platformVersion: "16"
+  platformVersion: "17"
 
   # ── Device ────────────────────────────────────────────────────────────────
   # Serial shown by: adb devices

@@ -34,6 +34,7 @@ Verify Products Screen Is Loaded
     ...
     ...                Example:
     ...                    Verify Products Screen Is Loaded
+    Dismiss Android Compatibility Dialog If Present
     Verify Page Is Displayed    ${PRODUCTS_SCREEN_INDICATOR}    Products Screen
 
 # ─────────────────────────────────────────────────────────────────────────────

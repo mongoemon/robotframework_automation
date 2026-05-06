@@ -115,6 +115,21 @@ Dismiss Alert If Present
     ${platform}=    Get Current Platform
     Run Keyword If    '${platform}' == 'android'    Press Keycode    4
 
+Dismiss Android Compatibility Dialog If Present
+    [Documentation]    Dismisses the "Android App Compatibility" 16 KB page-size warning
+    ...                that appears on ARM64 emulators (Apple Silicon) running Android 15+
+    ...                when the app contains native libraries not yet 16 KB aligned.
+    ...                Safe to call on any Android device — silently skips if the dialog
+    ...                is absent. Has no effect on iOS.
+    ${platform}=    Get Current Platform
+    Return From Keyword If    '${platform}' != 'android'
+    ${visible}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    xpath=//android.widget.Button[@text="OK"]    timeout=3s
+    Return From Keyword If    not ${visible}
+    Log    Android compatibility dialog detected — dismissing.    level=INFO
+    Click Element    xpath=//android.widget.Button[@text="OK"]
+    Sleep    1.5s    reason=Allow dialog dismiss animation to complete before next action
+
 Handle iOS Permission Dialog
     [Documentation]    Handles the iOS "Allow / Don't Allow" permission dialogs that appear
     ...                the first time an app requests camera, location, push notifications, etc.

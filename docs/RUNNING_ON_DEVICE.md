@@ -10,24 +10,24 @@ This guide is the end-to-end reference for executing the test suite against a ru
 
 | Parameter | Value |
 |-----------|-------|
-| Android version | 16 (Baklava) |
-| API level | 36 |
+| Android version | 17 |
+| API level | 37 |
+| AVD name | `Pixel_7` |
 | Device serial | `emulator-5554` |
-| AVD model | `sdk_gphone64_x86_64` (Google Play, x86\_64) |
 | App under test | SauceLabs My Demo App v2.2.0 (`mda-2.2.0-25.apk`) |
 | App package | `com.saucelabs.mydemoapp.android` |
 | Launch activity | `...view.activities.SplashActivity` |
-| Appium server | 2.19.0 |
-| UiAutomator2 driver | 4.2.4 |
+| Appium server | 3.3.1 |
+| UiAutomator2 driver | 7.2.0 |
 
 These values are the defaults in `config/android_capabilities.yaml`. Verify with:
 
 ```bash
-adb shell getprop ro.build.version.release   # → 16
-adb shell getprop ro.build.version.sdk       # → 36
+adb shell getprop ro.build.version.release   # → 17
+adb shell getprop ro.build.version.sdk       # → 37
 adb devices                                  # → emulator-5554   device
-appium --version                             # → 2.19.0
-appium driver list --installed               # → uiautomator2@4.2.4
+/opt/homebrew/bin/appium --version           # → 3.3.1
+/opt/homebrew/bin/appium driver list --installed   # → uiautomator2@7.2.0
 ```
 
 ---
@@ -105,20 +105,17 @@ curl -fsSL \
 
 ### Step 2 — Start the Android Emulator
 
-The project targets the **Google Play x86_64** AVD running Android 16 (API 36). If you have a different AVD, substitute its name — then update `platformVersion` in `config/android_capabilities.yaml` to match.
+The project uses the **Pixel_7** AVD. If you have a different AVD, substitute its name and update `platformVersion` in `config/android_capabilities.yaml` to match.
 
 ```bash
-# List your AVDs to find the right name
-emulator -list-avds
-# Example output (name depends on how it was created in Android Studio):
-# sdk_gphone64_x86_64
-# Pixel_6_API_33
+# List your available AVDs
+~/Library/Android/sdk/emulator/emulator -list-avds
+# Expected output includes: Pixel_7
 
-# Launch your AVD in the background
-emulator -avd sdk_gphone64_x86_64 &
-# Or from Android Studio: Device Manager → click ▶ Play
+# Launch the emulator (use the full path to avoid picking up an old version)
+~/Library/Android/sdk/emulator/emulator -avd Pixel_7 -no-snapshot-load &
 
-# Wait until fully booted (~60 s)
+# Wait until fully booted (~60–90 s)
 adb wait-for-device
 adb shell getprop sys.boot_completed   # Expected: 1
 
@@ -132,8 +129,8 @@ adb devices
 Verify the Android version matches your capabilities file:
 
 ```bash
-adb shell getprop ro.build.version.release   # → 16
-adb shell getprop ro.build.version.sdk       # → 36
+adb shell getprop ro.build.version.release   # → 17
+adb shell getprop ro.build.version.sdk       # → 37
 ```
 
 > **Tip:** The serial (`emulator-5554`) must match `deviceName` in `config/android_capabilities.yaml`. If you run multiple emulators, serials increment: `emulator-5554`, `emulator-5556`, etc.
@@ -185,14 +182,21 @@ capabilities:
 
 ### Step 5 — Start Appium
 
-Open a **new terminal window** and leave Appium running there:
+Open a **new terminal window** and leave Appium running there.
+
+> **macOS note:** Use the full Homebrew path to ensure Appium 3.x is launched, not the old
+> system-installed 1.x. `ANDROID_HOME` must be set so the UiAutomator2 driver can find `adb`.
 
 ```bash
-appium
+ANDROID_HOME=~/Library/Android/sdk \
+ANDROID_SDK_ROOT=~/Library/Android/sdk \
+/opt/homebrew/bin/appium
 # Expected:
-# [Appium] Welcome to Appium v2.x.x
+# [Appium] Welcome to Appium v3.x.x
 # [Appium] Appium REST http interface listener started on http://0.0.0.0:4723
 ```
+
+> If you added `ANDROID_HOME` to `~/.zshrc` and opened a **fresh terminal**, you can just run `/opt/homebrew/bin/appium` without the prefixes.
 
 Verify Appium is ready (from another terminal):
 
@@ -648,20 +652,20 @@ ${USERNAME_FIELD}     accessibility_id=username input field
 
 ## Quick Reference — Full Run Sequence
 
-### Android (macOS) — current emulator: Android 16 / API 36
+### Android (macOS) — current emulator: Pixel_7 / Android 17 / API 37
 
 ```bash
 # Terminal 1 — emulator (leave running)
-emulator -avd sdk_gphone64_x86_64 &
+~/Library/Android/sdk/emulator/emulator -avd Pixel_7 -no-snapshot-load &
 adb wait-for-device && adb shell getprop sys.boot_completed   # wait for: 1
 
-# Terminal 2 — Appium 2.19.0 (leave running)
-appium
+# Terminal 2 — Appium 3.3.1 (leave running)
+ANDROID_HOME=~/Library/Android/sdk /opt/homebrew/bin/appium
 
 # Terminal 3 — tests (videos saved to results/smoke_android/*.mp4)
 source .venv/bin/activate
 adb install -r app/android/mda-2.2.0-25.apk   # skip if already installed
-python -m robot \
+.venv/bin/robot \
   --variable PLATFORM:android \
   --include smoke \
   --outputdir results/smoke_android \
@@ -669,11 +673,11 @@ python -m robot \
 open results/smoke_android/report.html   # videos are embedded inside log.html
 ```
 
-### Android (Windows — PowerShell) — current emulator: Android 16 / API 36
+### Android (Windows — PowerShell) — current emulator: Android 17 / API 37
 
 ```powershell
 # Window 1 — emulator
-Start-Process emulator -ArgumentList "-avd", "sdk_gphone64_x86_64"
+Start-Process emulator -ArgumentList "-avd", "Pixel_7"
 Start-Sleep 60
 adb devices   # Expected: emulator-5554   device
 
@@ -683,7 +687,7 @@ appium
 # Window 3 — tests (videos saved to results\smoke_android\*.mp4)
 .venv\Scripts\Activate.ps1
 adb install -r app\android\mda-2.2.0-25.apk   # skip if already installed
-robot `
+.venv\Scripts\robot.exe `
   --variable PLATFORM:android `
   --include smoke `
   --outputdir results\smoke_android `

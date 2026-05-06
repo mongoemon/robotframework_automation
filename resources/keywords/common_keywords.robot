@@ -9,6 +9,7 @@ Library          String
 Library          DateTime
 Library          yaml    WITH NAME    YAML
 Resource         ../variables/common_variables.robot
+Resource         appium_keywords.robot
 
 
 *** Keywords ***
@@ -38,6 +39,7 @@ Open Mobile Application
     Open Application    ${server_url}    &{caps}
     Log    Application opened on platform: ${PLATFORM}    level=INFO
     Wait For App To Load
+    Dismiss Android Compatibility Dialog If Present
 
 Close Mobile Application
     [Documentation]    Closes the mobile app and ends the Appium session cleanly.
@@ -203,7 +205,7 @@ Wait For App To Load
     ...                Adjust ${APP_LOAD_TIMEOUT} in common_variables.robot if your app
     ...                has a particularly long loading screen.
     Log    Waiting up to ${APP_LOAD_TIMEOUT} for app to load...    level=INFO
-    Sleep    2s    reason=Allow app splash screen to start rendering
+    Sleep    4s    reason=Allow app splash screen to finish and UiAutomator2 to stabilise
     Log    App load wait complete.    level=INFO
 
 Get Window Size

@@ -28,6 +28,7 @@ Verify Login Page Is Loaded
     ...
     ...                Example:
     ...                    Verify Login Page Is Loaded
+    Dismiss Android Compatibility Dialog If Present
     Verify Page Is Displayed    ${LOGIN_PAGE_INDICATOR}    Login Page
 
 # ─────────────────────────────────────────────────────────────────────────────

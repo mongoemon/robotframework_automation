@@ -66,7 +66,42 @@ Then reload: `source ~/.zshrc`
 
 ---
 
-## Issue 2 — Appium is Not Starting
+## Issue 2 — "Android App Compatibility" 16 KB Dialog Blocks Tests (macOS ARM64)
+
+### Symptoms
+- A system dialog titled **"Android App Compatibility"** appears over the app during test runs on Apple Silicon Macs (M1/M2/M3/M4).
+- Tests fail with "page indicator element was not found" because the dialog overlays the app UI.
+- The dialog does not appear on Windows (x86_64 emulators skip this check).
+
+### Cause
+Android 15+ (API 35+) enforces 16 KB page-size alignment for native libraries on ARM64 devices. Apple Silicon emulators use ARM64 system images, triggering the check. The SauceLabs demo app v2.2.0 contains libraries that are not yet 16 KB aligned.
+
+### Fix (already applied in this project)
+The keyword `Dismiss Android Compatibility Dialog If Present` in `resources/keywords/appium_keywords.robot` automatically dismisses the dialog wherever it may appear (app launch, login page, products page). No manual action is needed.
+
+If you add new page objects and see this dialog blocking a new screen, add this call to that page's verification keyword:
+
+```robot
+Verify My New Page Is Loaded
+    Dismiss Android Compatibility Dialog If Present
+    Verify Page Is Displayed    ${MY_PAGE_INDICATOR}    My Page
+```
+
+### If the dialog still blocks tests
+```bash
+# Confirm the dialog's OK button locator is still correct for your Android version
+adb shell uiautomator dump /sdcard/ui.xml && adb pull /sdcard/ui.xml /tmp/ui.xml
+python3 -c "
+import xml.etree.ElementTree as ET
+for n in ET.parse('/tmp/ui.xml').getroot().iter('node'):
+    if 'OK' in n.get('text','') or 'compatible' in n.get('text','').lower():
+        print(n.get('resource-id'), n.get('content-desc'), n.get('text'))
+"
+```
+
+---
+
+## Issue 3 — Appium is Not Starting
 
 ### Symptoms
 - Running `appium` immediately exits with an error
@@ -126,7 +161,7 @@ appium driver install xcuitest    # macOS only
 
 ---
 
-## Issue 3 — No Devices Found (Android)
+## Issue 4 — No Devices Found (Android)
 
 ### Symptoms
 - `adb devices` shows nothing, or `offline`
@@ -196,7 +231,7 @@ adb devices
 
 ---
 
-## Issue 4 — App Not Found / Wrong Package Name
+## Issue 5 — App Not Found / Wrong Package Name
 
 ### Symptoms
 - `org.openqa.selenium.SessionNotCreatedException: Could not launch app... Activity not found`
@@ -241,7 +276,7 @@ app: "C:/Users/YOUR_NAME/work/robotframework_automation/app/android/myapp.apk"
 
 ---
 
-## Issue 5 — Element Not Found
+## Issue 6 — Element Not Found
 
 ### Symptoms
 - `ElementNotVisibleException: An element could not be located on the page`
@@ -291,7 +326,7 @@ Wait And Click Element    ${YOUR_ELEMENT_LOCATOR}
 
 ---
 
-## Issue 6 — Session Creation Failed
+## Issue 7 — Session Creation Failed
 
 ### Symptoms
 - `SessionNotCreatedException: Unable to create a new remote session`
@@ -338,7 +373,7 @@ newCommandTimeout: 600    # increase to 10 minutes
 
 ---
 
-## Issue 7 — Tests Time Out on Slow Actions
+## Issue 8 — Tests Time Out on Slow Actions
 
 ### Symptoms
 - Random `TimeoutException` on elements that usually appear quickly
@@ -378,7 +413,7 @@ newCommandTimeout: 600
 
 ---
 
-## Issue 8 — iOS Code Signing / Real Device Issues (macOS only)
+## Issue 9 — iOS Code Signing / Real Device Issues (macOS only)
 
 ### Symptoms
 - `Unable to launch com.example.myapp because it has an invalid code signature`
@@ -411,7 +446,7 @@ deviceName: "iPhone 15 Pro"
 
 ---
 
-## Issue 9 — Wrong Python Version / Import Errors
+## Issue 10 — Wrong Python Version / Import Errors
 
 ### Symptoms
 - `ModuleNotFoundError: No module named 'AppiumLibrary'`
@@ -475,7 +510,7 @@ py -3.11 -m robot --version
 
 ---
 
-## Issue 10 — Missing System Dependencies
+## Issue 11 — Missing System Dependencies
 
 ### Symptoms
 - `appium-doctor` reports WARN or ERROR
@@ -520,7 +555,7 @@ Run `appium-doctor --android` again to confirm all issues are resolved.
 
 ---
 
-## Issue 11 — Port 4723 Already in Use
+## Issue 12 — Port 4723 Already in Use
 
 ### Symptoms
 - `Error: listen EADDRINUSE: address already in use :::4723`
@@ -592,7 +627,7 @@ adb kill-server && adb start-server
 
 ---
 
-## Issue 12 — AppiumLibrary 2.x Keyword Compatibility
+## Issue 13 — AppiumLibrary 2.x Keyword Compatibility
 
 ### Symptoms
 - `No keyword with name 'Get Window Size' found`
@@ -656,7 +691,7 @@ Log    Platform: ${platform}    level=INFO
 
 ---
 
-## Issue 13 — Screen Recording / Video
+## Issue 14 — Screen Recording / Video
 
 ### Symptoms
 
