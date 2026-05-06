@@ -28,7 +28,7 @@ capabilities:
 
   # ── App Identification ────────────────────────────────────────────────────
   # SauceLabs My Demo App v2.2.0 (mda-2.2.0-25.apk)
-  # Install once with: adb install -r apps/android/mda-2.2.0-25.apk
+  # Install once with: adb install -r app/android/mda-2.2.0-25.apk
   appPackage: "com.saucelabs.mydemoapp.android"
   appActivity: "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
 
@@ -51,7 +51,7 @@ capabilities:
   # ── App Binary (optional) ─────────────────────────────────────────────────
   # Uncomment and set an absolute path to have Appium install the APK automatically.
   # If the app is already installed, leave this commented out.
-  # app: "C:/work/mobile/robotframework_automation/apps/android/mda-2.2.0-25.apk"
+  # app: "C:/work/mobile/robotframework_automation/app/android/mda-2.2.0-25.apk"
 
   # ── Language / Locale ─────────────────────────────────────────────────────
   # Force a specific language/locale so tests are language-independent.

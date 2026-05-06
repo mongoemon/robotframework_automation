@@ -113,7 +113,7 @@ python scripts/download_apps.py --android # Android only
 python scripts/download_apps.py --ios     # iOS only
 ```
 
-Files are saved to `apps/android/` and `apps/ios/` automatically.
+Files are saved to `app/android/` and `app/ios/` automatically.
 If the files already exist, the script skips them — run with `--force` to re-download.
 
 > See the [App Binaries](#app-binaries) section for switching to a private download source.
@@ -203,8 +203,8 @@ python scripts/download_apps.py --force
 
 | Destination | File |
 |---|---|
-| `apps/android/` | `mda-2.2.0-25.apk` |
-| `apps/ios/` | `SauceLabs-Demo-App.ipa` |
+| `app/android/` | `mda-2.2.0-25.apk` |
+| `app/ios/` | `SauceLabs-Demo-App.Simulator.zip` (extracts to `SauceLabs-Demo-App.app`) |
 
 ### Switching Between Sources
 
@@ -221,7 +221,7 @@ android:
   private_url: ""   # fill in your private URL here
 
 ios:
-  filename: SauceLabs-Demo-App.ipa
+  filename: SauceLabs-Demo-App.Simulator.zip
   saucelabs_url: "https://github.com/saucelabs/my-demo-app-ios/releases/..."
   private_url: ""
 ```
@@ -300,9 +300,9 @@ robotframework_automation/
 │   ├── TROUBLESHOOTING.md          # Top 10 issues and how to fix them
 │   └── GIT_WORKFLOW.md             # Git commands: clone, branch, commit, push, PR
 │
-├── apps/
+├── app/
 │   ├── android/                    # .apk builds (mda-2.2.0-25.apk)
-│   └── ios/                        # .ipa / .XCUITest builds (SauceLabs-Demo-App)
+│   └── ios/                        # .app / .Simulator.zip builds (SauceLabs-Demo-App)
 │
 ├── requirements.txt                # Python dependencies
 ├── Makefile                        # Convenient make targets
@@ -464,11 +464,11 @@ Current emulator: **Android 16 (API 36)**, serial `emulator-5554`, AVD `sdk_gpho
 emulator -avd sdk_gphone64_x86_64 &
 adb wait-for-device && adb shell getprop sys.boot_completed  # wait for: 1
 
-# 2. Download the APK (skip if already in apps/android/)
-python scripts/download_apps.py --android
+# 2. Download the APK (skip if already in app/android/)
+SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())") python3 scripts/download_apps.py --android
 
 # 3. Install the app onto the emulator
-adb install -r apps/android/mda-2.2.0-25.apk
+adb install -r app/android/mda-2.2.0-25.apk
 
 # 3. Start Appium (separate terminal)
 appium
@@ -492,12 +492,13 @@ Configuration: `config/android_capabilities.yaml` — change `deviceName` and `p
 xcrun simctl boot "iPhone 15 Pro"
 open -a Simulator
 
-# 2. Download the IPA (skip if already in apps/ios/)
-python scripts/download_apps.py --ios
+# 2. Download and extract the simulator build (skip if already in app/ios/)
+SSL_CERT_FILE=$(python3 -c "import certifi; print(certifi.where())") python3 scripts/download_apps.py --ios
+unzip -qn app/ios/SauceLabs-Demo-App.Simulator.zip -d app/ios/
 
 # 3. Install the app onto the simulator
 UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0-9-]{36}')
-xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.ipa
+xcrun simctl install "$UDID" app/ios/SauceLabs-Demo-App.app
 
 # 4. Start Appium (separate terminal)
 appium
