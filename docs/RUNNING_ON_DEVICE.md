@@ -6,6 +6,45 @@ This guide is the end-to-end reference for executing the test suite against a ru
 
 ---
 
+## Quick Run
+
+Everything already set up? Use these commands. Open **3 separate terminals**.
+
+### Android
+
+```bash
+# Terminal 1 — start emulator
+~/Library/Android/sdk/emulator/emulator -avd Pixel_7 -no-snapshot-load
+
+# Terminal 2 — start Appium (once emulator is booted)
+ANDROID_HOME=~/Library/Android/sdk /opt/homebrew/bin/appium
+
+# Terminal 3 — run tests
+cd /Users/monmac/work/robotframework_automation
+adb install -r app/android/mda-2.2.0-25.apk    # skip if already installed
+.venv/bin/robot --variable PLATFORM:android --include smoke --outputdir results/smoke_android tests/
+open results/smoke_android/report.html
+```
+
+### iOS (macOS only)
+
+```bash
+# Terminal 1 — boot simulator
+xcrun simctl boot "iPhone 15 Pro" && open -a Simulator
+
+# Terminal 2 — start Appium (once simulator is booted)
+/opt/homebrew/bin/appium
+
+# Terminal 3 — run tests
+cd /Users/monmac/work/robotframework_automation
+UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0-9-]{36}')
+xcrun simctl install "$UDID" app/ios/SauceLabs-Demo-App.app
+.venv/bin/robot --variable PLATFORM:ios --include smoke --outputdir results/smoke_ios tests/
+open results/smoke_ios/report.html
+```
+
+---
+
 ## Current Emulator Configuration (verified)
 
 | Parameter | Value |
