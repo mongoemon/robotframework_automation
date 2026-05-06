@@ -11,13 +11,14 @@ Supports both **Android** and **iOS** with a single codebase, on **macOS and Win
 
 1. [Introduction](#introduction)
 2. [Prerequisites](#prerequisites)
-3. [Quick Start — Run Your First Test in 5 Steps](#quick-start)
-4. [Project Structure](#project-structure)
-5. [Configuration — Adapt to Your App](#configuration)
-6. [Running Tests](#running-tests)
-7. [Running on Emulator / Simulator](#running-on-emulator--simulator)
-8. [Understanding Results](#understanding-results)
-9. [Next Steps](#next-steps)
+3. [Quick Start — Run Your First Test in 6 Steps](#quick-start)
+4. [App Binaries](#app-binaries)
+5. [Project Structure](#project-structure)
+6. [Configuration — Adapt to Your App](#configuration)
+7. [Running Tests](#running-tests)
+8. [Running on Emulator / Simulator](#running-on-emulator--simulator)
+9. [Understanding Results](#understanding-results)
+10. [Next Steps](#next-steps)
 
 ---
 
@@ -67,7 +68,7 @@ appium driver install xcuitest        # iOS
 
 ## Quick Start
 
-Five steps to run your first test:
+Six steps to run your first test:
 
 ### Step 1 — Clone the repository
 
@@ -102,7 +103,22 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### Step 4 — Configure your app capabilities
+### Step 4 — Download app binaries
+
+App binaries (APK/IPA) are not stored in the repository. Download them with the included script:
+
+```bash
+python scripts/download_apps.py           # download both Android and iOS
+python scripts/download_apps.py --android # Android only
+python scripts/download_apps.py --ios     # iOS only
+```
+
+Files are saved to `apps/android/` and `apps/ios/` automatically.
+If the files already exist, the script skips them — run with `--force` to re-download.
+
+> See the [App Binaries](#app-binaries) section for switching to a private download source.
+
+### Step 5 — Configure your app capabilities
 
 Edit the file that matches your target platform:
 
@@ -124,7 +140,7 @@ ${ANDROID_APP_ID}    com.example.myapp   # matches appPackage above
 ${IOS_APP_ID}        com.example.myapp   # matches bundleId in ios_capabilities.yaml
 ```
 
-### Step 5 — Start Appium and run smoke tests
+### Step 6 — Start Appium and run smoke tests
 
 **Terminal 1 — Start Appium (same on all platforms):**
 
@@ -165,6 +181,76 @@ start results\report.html
 
 ---
 
+## App Binaries
+
+APK and IPA files are excluded from the repository (see `.gitignore`). They are managed separately so the repo stays small and version-controlled independently of the app build.
+
+### Downloading on a New Machine
+
+After cloning the repo and installing dependencies (`pip install -r requirements.txt`), run:
+
+```bash
+# Download everything (Android APK + iOS IPA)
+python scripts/download_apps.py
+
+# Platform-specific
+python scripts/download_apps.py --android
+python scripts/download_apps.py --ios
+
+# Force re-download even if file already exists
+python scripts/download_apps.py --force
+```
+
+| Destination | File |
+|---|---|
+| `apps/android/` | `mda-2.2.0-25.apk` |
+| `apps/ios/` | `SauceLabs-Demo-App.ipa` |
+
+### Switching Between Sources
+
+Download URLs and the active source are configured in **`scripts/apps.yaml`** — this is the only file you need to edit when updating versions or switching sources.
+
+```yaml
+# Set to "saucelabs" to use the official public release,
+# or "private" to use your own hosted build.
+source: saucelabs
+
+android:
+  filename: mda-2.2.0-25.apk
+  saucelabs_url: "https://github.com/saucelabs/my-demo-app-android/releases/..."
+  private_url: ""   # fill in your private URL here
+
+ios:
+  filename: SauceLabs-Demo-App.ipa
+  saucelabs_url: "https://github.com/saucelabs/my-demo-app-ios/releases/..."
+  private_url: ""
+```
+
+### Private Hosting Setup (GitHub Releases — recommended)
+
+Using your own hosted builds lets you pin an exact version and avoids relying on the upstream public release.
+
+1. Go to your GitHub repo → **Releases** → **Draft a new release**
+2. Upload `mda-2.2.0-25.apk` and `SauceLabs-Demo-App.ipa` as release assets
+3. Copy the asset URLs into `private_url` in `scripts/apps.yaml`
+4. Change `source: private`
+
+For **private repos**, set a GitHub personal access token before running the script:
+
+```bash
+# macOS / CI
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxx"
+python scripts/download_apps.py
+```
+
+```powershell
+# Windows PowerShell
+$env:GITHUB_TOKEN = "ghp_xxxxxxxxxxxx"
+python scripts/download_apps.py
+```
+
+---
+
 ## Project Structure
 
 ```
@@ -199,6 +285,8 @@ robotframework_automation/
 │   └── users.yaml                  # Test credentials and expected error messages (incl. demo_user)
 │
 ├── scripts/
+│   ├── apps.yaml                   # Download URLs for APK/IPA (edit here to switch source or version)
+│   ├── download_apps.py            # Cross-platform binary downloader (Mac + Windows)
 │   ├── run_android.sh              # Android test runner with pre-flight checks
 │   └── run_ios.sh                  # iOS test runner with pre-flight checks
 │
@@ -376,7 +464,10 @@ Current emulator: **Android 16 (API 36)**, serial `emulator-5554`, AVD `sdk_gpho
 emulator -avd sdk_gphone64_x86_64 &
 adb wait-for-device && adb shell getprop sys.boot_completed  # wait for: 1
 
-# 2. Install the app (download once to apps/android/ first)
+# 2. Download the APK (skip if already in apps/android/)
+python scripts/download_apps.py --android
+
+# 3. Install the app onto the emulator
 adb install -r apps/android/mda-2.2.0-25.apk
 
 # 3. Start Appium (separate terminal)
@@ -401,14 +492,17 @@ Configuration: `config/android_capabilities.yaml` — change `deviceName` and `p
 xcrun simctl boot "iPhone 15 Pro"
 open -a Simulator
 
-# 2. Install the app (download .app bundle to apps/ios/ first)
-UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0-9-]{36}')
-xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.app
+# 2. Download the IPA (skip if already in apps/ios/)
+python scripts/download_apps.py --ios
 
-# 3. Start Appium (separate terminal)
+# 3. Install the app onto the simulator
+UDID=$(xcrun simctl list devices booted | grep "iPhone 15 Pro" | grep -oE '[A-F0-9-]{36}')
+xcrun simctl install "$UDID" apps/ios/SauceLabs-Demo-App.ipa
+
+# 4. Start Appium (separate terminal)
 appium
 
-# 4. Run smoke tests
+# 5. Run smoke tests
 python -m robot \
   --variable PLATFORM:ios \
   --include smoke \
@@ -418,9 +512,8 @@ python -m robot \
 
 Configuration: `config/ios_capabilities.yaml` — set `udid` to the value from Step 2.
 
-> **Download the demo apps:**  
-> Android APK: https://github.com/saucelabs/my-demo-app-android/releases/tag/v2.2.0  
-> iOS Simulator build: https://github.com/saucelabs/my-demo-app-ios/releases/tag/v1.0.3
+> **App binaries are not in the repo.** Run `python scripts/download_apps.py` after cloning.  
+> See the [App Binaries](#app-binaries) section to configure the download source.
 
 ---
 
