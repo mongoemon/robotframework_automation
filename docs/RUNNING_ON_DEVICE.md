@@ -10,7 +10,7 @@ This guide is the end-to-end reference for executing the test suite against a ru
 
 Everything already set up? Use these commands. Open **3 separate terminals**.
 
-### Android
+### Android (macOS)
 
 ```bash
 # Terminal 1 — start emulator
@@ -29,6 +29,32 @@ ANDROID_HOME=~/Library/Android/sdk /opt/homebrew/bin/appium
 cd /Users/monmac/work/robotframework_automation
 .venv/bin/robot --variable PLATFORM:android --include smoke --outputdir results/smoke_android tests/
 open results/smoke_android/report.html
+```
+
+### Android (Windows — PowerShell)
+
+> **Note:** `emulator` is not added to PATH by Android Studio on Windows. Use the full SDK path shown below.
+
+```powershell
+# Terminal 1 — list AVDs, then start emulator
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -list-avds
+# Expected output: Pixel_7_API_36
+
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Pixel_7_API_36
+
+# Wait for full boot (~60 s), then check
+adb devices   # Expected: emulator-5554   device
+
+# Install the APK once (skip if already installed)
+adb install -r app\android\mda-2.2.0-25.apk
+
+# Terminal 2 — start Appium
+appium
+
+# Terminal 3 — run tests
+.venv\Scripts\Activate.ps1
+robot --variable PLATFORM:android --include smoke --outputdir results\smoke_android tests\
+Start-Process results\smoke_android\report.html
 ```
 
 > **Apple Silicon (ARM64) — 16 KB dialog:** The "Android App Compatibility" modal fires on every cold app launch on ARM64 emulators (Android 15+) when the app's native libs are not 16 KB aligned. `noReset: true` in `config/android_capabilities.yaml` is the reliable fix — Appium activates the already-installed app instead of reinstalling/clearing it, which eliminates the cold-launch trigger. Pre-install the APK once manually (step above) before starting tests each session.
@@ -338,37 +364,46 @@ Invoke-WebRequest `
 
 ### Step 2 — Start the Android Emulator
 
+> **Windows note:** `emulator` is not in PATH by default after installing Android Studio.
+> Always use the full path: `& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"`
+
 Open **Android Studio → Device Manager** and click the **Play ▶** button next to your AVD. Or from the command line:
+
+**PowerShell (recommended):**
+```powershell
+# List available AVDs — confirm Pixel_7_API_36 is shown
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -list-avds
+# Expected: Pixel_7_API_36
+
+# Launch the emulator (runs in a new window)
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Pixel_7_API_36
+
+# Wait for full boot (~60 s), then check
+adb devices
+# Expected: emulator-5554   device
+
+adb shell getprop sys.boot_completed
+# Expected: 1
+
+# Verify Android version
+adb shell getprop ro.build.version.release   # → 17
+```
 
 **Command Prompt:**
 ```cmd
 :: List available AVDs
-emulator -list-avds
+"%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe" -list-avds
 
-:: Launch (substitute your AVD name)
-start "" emulator -avd sdk_gphone64_x86_64
+:: Launch
+start "" "%LOCALAPPDATA%\Android\Sdk\emulator\emulator.exe" -avd Pixel_7_API_36
 
 :: Wait for full boot, then check
 adb wait-for-device
 adb shell getprop sys.boot_completed
 :: Expected: 1
 
-:: Confirm serial
 adb devices
 :: Expected: emulator-5554   device
-```
-
-**PowerShell:**
-```powershell
-# Launch emulator in background
-Start-Process emulator -ArgumentList "-avd", "sdk_gphone64_x86_64"
-
-# Check connectivity (~60 sec after launch)
-adb devices
-# Expected: emulator-5554   device
-
-# Verify Android version
-adb shell getprop ro.build.version.release   # → 16
 ```
 
 ### Step 3 — Install the APK
@@ -739,12 +774,12 @@ source .venv/bin/activate
 open results/smoke_android/report.html   # videos are embedded inside log.html
 ```
 
-### Android (Windows — PowerShell) — current emulator: Android 17 / API 37
+### Android (Windows — PowerShell) — current emulator: Pixel_7_API_36 / Android 17 / API 37
 
 ```powershell
-# Window 1 — emulator
-Start-Process emulator -ArgumentList "-avd", "Pixel_7"
-Start-Sleep 60
+# Window 1 — emulator (emulator is not in PATH; use full SDK path)
+& "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Pixel_7_API_36
+# Wait ~60 s, then confirm:
 adb devices   # Expected: emulator-5554   device
 
 # Window 2 — Appium
