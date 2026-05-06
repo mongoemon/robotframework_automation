@@ -16,6 +16,10 @@ Everything already set up? Use these commands. Open **3 separate terminals**.
 # Terminal 1 — start emulator
 ~/Library/Android/sdk/emulator/emulator -avd Pixel_7 -no-snapshot-load
 
+# Wait for full boot, then suppress the 16KB compatibility dialog (ARM64/Apple Silicon only)
+adb wait-for-device && adb shell getprop sys.boot_completed   # wait for: 1
+adb shell settings put global show_16kb_compat_dialog 0
+
 # Terminal 2 — start Appium (once emulator is booted)
 ANDROID_HOME=~/Library/Android/sdk /opt/homebrew/bin/appium
 
@@ -25,6 +29,8 @@ adb install -r app/android/mda-2.2.0-25.apk    # skip if already installed
 .venv/bin/robot --variable PLATFORM:android --include smoke --outputdir results/smoke_android tests/
 open results/smoke_android/report.html
 ```
+
+> **Apple Silicon (ARM64) note:** The `adb shell settings put global show_16kb_compat_dialog 0` command suppresses the "Android App Compatibility" 16 KB page-size modal that blocks tests on ARM64 emulators (Android 15+). Run it once after each emulator boot. It is not needed on Windows/Intel.
 
 ### iOS (macOS only)
 
@@ -171,6 +177,30 @@ Verify the Android version matches your capabilities file:
 adb shell getprop ro.build.version.release   # → 17
 adb shell getprop ro.build.version.sdk       # → 37
 ```
+
+#### Suppress the 16KB compatibility dialog (ARM64 / Apple Silicon only)
+
+On Apple Silicon Macs, ARM64 emulators running Android 15+ show an "Android App Compatibility" modal when launching apps that contain native libraries not yet aligned to the 16 KB page size. This dialog overlays the app UI and **blocks all tests**.
+
+Suppress it once after each emulator boot:
+
+```bash
+adb shell settings put global show_16kb_compat_dialog 0
+```
+
+Verify it is suppressed:
+
+```bash
+adb shell settings get global show_16kb_compat_dialog   # → 0
+```
+
+> **Persistent alternative:** Open Developer Options on the emulator and toggle off **App compatibility check for 16 KB page size**. You can jump there via adb:
+> ```bash
+> adb shell am start -a android.settings.APPLICATION_DEVELOPMENT_SETTINGS
+> ```
+> This toggle survives reboots, but `show_16kb_compat_dialog` must be re-applied after each cold boot.
+
+> **Windows / Intel note:** The dialog does not appear on x86_64 emulators. This step is macOS ARM64 only.
 
 > **Tip:** The serial (`emulator-5554`) must match `deviceName` in `config/android_capabilities.yaml`. If you run multiple emulators, serials increment: `emulator-5554`, `emulator-5556`, etc.
 
@@ -662,6 +692,7 @@ ${USERNAME_FIELD}     accessibility_id=username input field
 | `Unable to find an element` (test fails immediately) | Wrong `accessibility_id` | Open Appium Inspector and find the real value |
 | Session starts but app crashes instantly | Wrong `appPackage` / `appActivity` | Run `adb shell dumpsys window \| grep -E 'mCurrentFocus\|mFocusedApp'` while app is open |
 | `INSTALL_FAILED_VERSION_DOWNGRADE` | Older APK already installed | `adb uninstall com.saucelabs.mydemoapp.android` first |
+| "Android App Compatibility" 16 KB modal appears / tests fail immediately | ARM64 emulator (Apple Silicon) with Android 15+ | Run `adb shell settings put global show_16kb_compat_dialog 0` after each emulator boot (see Step 2) |
 | `uiautomator2 not found` | Driver not installed | `appium driver install uiautomator2` |
 | Tests are very slow | Animations enabled | Add `disableWindowAnimation: true` to capabilities, or disable animations in the emulator settings |
 
@@ -697,6 +728,7 @@ ${USERNAME_FIELD}     accessibility_id=username input field
 # Terminal 1 — emulator (leave running)
 ~/Library/Android/sdk/emulator/emulator -avd Pixel_7 -no-snapshot-load &
 adb wait-for-device && adb shell getprop sys.boot_completed   # wait for: 1
+adb shell settings put global show_16kb_compat_dialog 0       # ARM64/Apple Silicon: suppress 16KB dialog
 
 # Terminal 2 — Appium 3.3.1 (leave running)
 ANDROID_HOME=~/Library/Android/sdk /opt/homebrew/bin/appium
