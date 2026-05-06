@@ -38,9 +38,11 @@ capabilities:
   automationName: UiAutomator2
 
   # ── Session Behavior ──────────────────────────────────────────────────────
-  # false = app state is reset between sessions (fresh install behaviour).
-  # Set to true only if tests explicitly manage their own state.
-  noReset: false
+  # true = Appium activates the existing installation without clearing data or reinstalling.
+  # Required on ARM64 (Apple Silicon) to prevent the 16 KB page-size compatibility dialog
+  # that fires on every cold launch of the app. Pre-install the APK once manually with:
+  #   adb install -r app/android/mda-2.2.0-25.apk
+  noReset: true
 
   # false = Appium may reinstall the app; set true to skip reinstall for faster startup.
   fullReset: false
